@@ -216,16 +216,24 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
   body.lesson .brand .mark{width:36px;height:36px;font-size:24px;border-radius:11px}
   body.lesson .voicesel{max-width:120px;padding:4px 6px;font-size:13px}
   body.lesson .pill{padding:4px 10px;font-size:13px}
-  body.lesson .stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
+  body.lesson .stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%}
   body.lesson .boardcol{flex:none;gap:6px}
   body.lesson .boardhead h2{font-size:19px}
   body.lesson .boardhead .sub{font-size:12px}
   body.lesson .starcount{font-size:17px}
   body.lesson .phases,body.lesson .legend,body.lesson .moves{display:none}
-  body.lesson .wide{width:min(100%,calc(100dvh - 410px))}
+  body.lesson .wide{width:100%}
   body.lesson .boardhead,body.lesson .progress{width:100%}
   body.lesson .wide:first-child{width:100%}
-  body.lesson .frame{padding:5px;border-radius:12px}
+  body.lesson .frame{padding:3px;border-radius:10px}
+  body.lesson .under{display:none}
+  body.lesson .controls{grid-template-columns:repeat(4,1fr)}
+  body.lesson .controls .chip-btn{border:0;background:var(--surface-2);border-radius:12px;justify-content:center;font-family:var(--f-display);font-size:16px;font-weight:800;padding:6px 4px}
+  body.lesson .boardhead .chip-btn{padding:3px 8px}
+  body.lesson .boardhead{align-items:center;flex-wrap:nowrap}
+  body.lesson .boardhead>div:first-child{min-width:0;flex:1}
+  body.lesson .boardhead .chip-btn{flex:none}
+  body.lesson .ctl b{white-space:nowrap}
   body.lesson .under{justify-content:center}
   body.lesson .chip-btn{padding:3px 10px;font-size:13px}
   body.lesson .panel{flex:1;min-height:0;position:static;max-height:none;border-radius:16px}
@@ -240,7 +248,13 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
   body.lesson .entry.cur p{font-size:16px}
   body.lesson .ideas{display:none}
 }
-@media (max-width:900px) and (max-height:620px){body.lesson .wide{width:min(100%,calc(100dvh - 330px))}}
+@media (max-width:900px) and (min-width:600px){body.lesson .boardcol>.wide.frame{width:min(100%,calc(100dvh - 330px))}}
+@media (max-width:480px){
+  body.lesson #restartBtn{font-size:0;gap:0;padding:6px}
+  body.lesson .ctl{gap:4px}
+  body.lesson .ctl b,body.lesson .controls .chip-btn{font-size:14px}
+}
+@media (max-width:370px){body.lesson .ctl svg,body.lesson .controls .chip-btn svg{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -283,7 +297,7 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
       <div class="moves" id="moves"></div>
       <div class="minibtns">
         <button class="chip-btn" id="hintBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>Hint</button>
-        <button class="chip-btn" id="restartBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Start over</button>
+        <button class="chip-btn" id="restartBtn" type="button" aria-label="Start over" title="Start over" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Start over</button>
       </div>
     </div>
   </section>
@@ -1491,6 +1505,12 @@ function confetti(){
     if(++t<150)requestAnimationFrame(f);else{x.clearRect(0,0,c.width,c.height);c.hidden=true;}})();
 }
 
+const mq=matchMedia('(max-width:900px)'),minis=document.querySelector('.minibtns');
+function placeButtons(){
+  if(mq.matches){document.querySelector('.controls').appendChild($('hintBtn'));$('stars').after($('restartBtn'));}
+  else{minis.append($('hintBtn'),$('restartBtn'));}
+}
+mq.addEventListener?mq.addEventListener('change',placeButtons):mq.addListener(placeButtons);placeButtons();
 renderVoiceBtn();buildGrid();renderCards();updateButtons();
 </script>
 </body>

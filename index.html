@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Opening Quest: Grandpa Rook teaches kids seven chess openings, one move at a time, explaining why every move matters.">
+<title>Opening Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols+2&text=%E2%99%9A%E2%99%9B%E2%99%9C%E2%99%9D%E2%99%9E%E2%99%9F&display=block">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<style>
+/* Layout: a library of openings (cards with mini boards) leads into a two-part learning stage — board and progress on the left, Grandpa's spoken words and Repeat / Play / Go deeper on the right. Stacks on phones. */
+:root{
+  --bg:#F1F3FA; --surface:#FFFFFF; --surface-2:#E7EBF8; --ink:#1C1F3E; --muted:#596084; --line:#D6DCF0;
+  --accent:#F26B1D; --accent-soft:#FFE3D2; --accent-ink:#2A1606;
+  --good:#1C9A60; --good-soft:#D4F3E3; --bad:#D9434A; --bad-soft:#FBDCDD; --deep:#6B4FD8; --deep-soft:#E6E0FF;
+  --hl:rgba(255,196,61,.55); --glow:#FFC43D;
+  --sq-l:#DDE4FA; --sq-d:#8193D9; --coord-l:#5E6FB8; --coord-d:#EEF1FF; --frame:#2B3160;
+  --pw:#FFFFFF; --pw-edge:#262A4D; --pb:#262A4D; --pb-edge:#F3F5FF;
+  --shadow:0 12px 34px rgba(40,48,110,.13);
+  --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --f-piece:"Noto Sans Symbols 2","Segoe UI Symbol","DejaVu Sans","Apple Symbols",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10122A; --surface:#1B1E3C; --surface-2:#262A52; --ink:#EEF0FF; --muted:#A6ACD3; --line:#33386A;
+  --accent:#FF8F4F; --accent-soft:#4A2C22; --accent-ink:#2A1606;
+  --good:#3CCB88; --good-soft:#193C30; --bad:#FF6B70; --bad-soft:#47222A; --deep:#A895FF; --deep-soft:#2E2858;
+  --hl:rgba(255,196,61,.32); --sq-l:#C9D2F3; --sq-d:#6476C6; --coord-l:#4B5CA8; --coord-d:#E8ECFF; --frame:#0B0D20;
+  --shadow:0 12px 34px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10122A; --surface:#1B1E3C; --surface-2:#262A52; --ink:#EEF0FF; --muted:#A6ACD3; --line:#33386A;
+  --accent:#FF8F4F; --accent-soft:#4A2C22; --accent-ink:#2A1606;
+  --good:#3CCB88; --good-soft:#193C30; --bad:#FF6B70; --bad-soft:#47222A; --deep:#A895FF; --deep-soft:#2E2858;
+  --hl:rgba(255,196,61,.32); --sq-l:#C9D2F3; --sq-d:#6476C6; --coord-l:#4B5CA8; --coord-d:#E8ECFF; --frame:#0B0D20;
+  --shadow:0 12px 34px rgba(0,0,0,.4); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+
+.top{max-width:1200px;margin:0 auto 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;background:none;border:0;padding:0;text-align:left}
+.brand .mark{width:44px;height:44px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-piece);font-size:30px;line-height:1;transform:rotate(-6deg)}
+.brand h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+.brand small{display:block;font-family:var(--f-body);font-size:13px;color:var(--muted);font-weight:700}
+.pill{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.pill svg{width:18px;height:18px}
+.voicesel{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;max-width:230px}
+
+/* Library */
+.home{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;background:var(--surface);border-radius:24px;padding:20px 22px;box-shadow:var(--shadow)}
+.hero .gp{width:96px;height:96px}
+.hero h2{font-size:clamp(24px,4vw,34px)}
+.hero p{margin:6px 0 0;color:var(--muted);font-weight:600;max-width:62ch}
+.shelf h3{font-size:20px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.shelf h3 .side{font-family:var(--f-body);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;padding:2px 8px;border-radius:999px;border:2px solid var(--line)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{display:grid;grid-template-columns:112px minmax(0,1fr);gap:14px;align-items:center;text-align:left;border:2px solid transparent;background:var(--surface);border-radius:20px;padding:12px;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.card strong{display:block;font-family:var(--f-display);font-size:21px;line-height:1.1}
+.card .tg{display:block;color:var(--muted);font-weight:600;font-size:14px;line-height:1.35;margin-top:2px}
+.card .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;background:var(--surface-2)}
+.tag.w{background:#FFFFFF;color:#262A4D;border:1px solid #C9CFE6}
+.tag.b{background:#262A4D;color:#FFFFFF}
+.tag.done{background:var(--good-soft)}
+.mini{width:112px;aspect-ratio:1;max-width:100%;display:grid;grid-template-columns:repeat(8,1fr);border-radius:10px;overflow:hidden;container-type:inline-size;border:3px solid var(--frame)}
+.mini i{display:grid;place-items:center;background:var(--sq-l);font-style:normal;font-family:var(--f-piece);font-size:11cqw;line-height:1}
+.mini i.d{background:var(--sq-d)}
+.mini i.w{color:var(--pw);text-shadow:0 0 1px var(--pw-edge),.5px .5px 0 var(--pw-edge),-.5px -.5px 0 var(--pw-edge),.5px -.5px 0 var(--pw-edge),-.5px .5px 0 var(--pw-edge)}
+.mini i.b{color:var(--pb)}
+
+/* Lesson stage */
+.stage{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,420px);gap:24px;align-items:start}
+.boardcol{min-width:0;display:flex;flex-direction:column;gap:12px;align-items:center}
+.wide{width:min(100%,600px)}
+.boardhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 16px}
+.boardhead h2{font-size:26px}
+.boardhead .sub{color:var(--muted);font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.starcount{font-family:var(--f-display);font-weight:800;font-size:20px;display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+.starcount .st{color:var(--glow);font-size:24px;line-height:1}
+.starcount.pop .st{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
+.progress{display:flex;gap:4px;align-items:center}
+.progress .seg{flex:1;height:10px;border-radius:5px;background:var(--surface-2)}
+.progress .seg.plan{background:var(--deep-soft)}
+.progress .seg.done{background:var(--accent)}
+.progress .seg.plan.done{background:var(--deep)}
+.progress .seg.cur{box-shadow:0 0 0 2px var(--ink) inset}
+.progress .gap{width:8px}
+.phases{display:flex;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.phases .p2{color:var(--deep)}
+
+.frame{padding:10px;border-radius:20px;background:var(--frame);box-shadow:var(--shadow)}
+.board{position:relative;width:100%;aspect-ratio:1;max-width:100%;border-radius:10px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;container-type:inline-size}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr)}
+.sq{position:relative;background:var(--sq-l)}
+.sq.d{background:var(--sq-d)}
+.sq::before{content:"";position:absolute;inset:0;pointer-events:none}
+.sq.last::before{box-shadow:inset 0 0 0 4px rgba(255,196,61,.95);background:rgba(255,230,150,.22)}
+.sq.sel::before{background:rgba(255,122,47,.5)}
+.sq.good::before{background:rgba(28,154,96,.55)}
+.sq.bad::before{background:rgba(217,67,74,.55)}
+.sq.okm::before{background:rgba(107,79,216,.45)}
+.sq.glow::after{content:"";position:absolute;inset:6%;border-radius:22%;border:4px solid var(--glow);pointer-events:none;animation:breathe 1.6s ease-in-out infinite}
+.sq.hint::after{content:"";position:absolute;inset:4%;border-radius:50%;border:5px solid var(--accent);pointer-events:none;animation:breathe .9s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.35;transform:scale(.9)}50%{opacity:1;transform:scale(1)}}
+.sq.dot::after{content:"";position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(28,31,62,.28);pointer-events:none}
+.sq.cap::after{content:"";position:absolute;inset:3%;border-radius:50%;border:5px solid rgba(28,31,62,.28);pointer-events:none}
+.coord{position:absolute;font-size:clamp(9px,2cqw,13px);font-weight:800;pointer-events:none}
+.sq.d .coord{color:var(--coord-d)} .sq:not(.d) .coord{color:var(--coord-l)}
+.coord.f{right:4%;bottom:1%} .coord.r{left:4%;top:1%}
+.pieces{position:absolute;inset:0;pointer-events:none}
+.pc{position:absolute;width:12.5%;height:12.5%;display:grid;place-items:center;font-family:var(--f-piece);font-size:9.6cqw;line-height:1;transition:left .38s cubic-bezier(.3,.8,.3,1),top .38s cubic-bezier(.3,.8,.3,1)}
+.pc span{display:block;transform:translateY(-3%)}
+.pc.w{color:var(--pw);text-shadow:0 0 1px var(--pw-edge),1px 0 0 var(--pw-edge),-1px 0 0 var(--pw-edge),0 1px 0 var(--pw-edge),0 -1px 0 var(--pw-edge),1.5px 1.5px 0 var(--pw-edge),-1.5px -1.5px 0 var(--pw-edge),1.5px -1.5px 0 var(--pw-edge),-1.5px 1.5px 0 var(--pw-edge),0 3px 4px rgba(0,0,0,.25)}
+.pc.b{color:var(--pb);text-shadow:1px 0 0 var(--pb-edge),-1px 0 0 var(--pb-edge),0 1px 0 var(--pb-edge),0 -1px 0 var(--pb-edge),0 3px 4px rgba(0,0,0,.25)}
+.pc.lift span{transform:translateY(-10%) scale(1.12)}
+.arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.arrows .trail{opacity:0;animation:trailIn .3s ease-out forwards}
+.arrows .ln{transition:stroke-dashoffset .55s ease-out}
+@keyframes trailIn{to{opacity:1}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;font-weight:700;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:6px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.under{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.moves{display:flex;flex-wrap:wrap;gap:6px;min-width:0;flex:1}
+.mv{font-weight:800;font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.mv b{color:var(--muted);font-weight:700;margin-right:4px}
+.mv.empty{color:var(--muted);font-weight:600;border-style:dashed}
+.minibtns{display:flex;gap:8px}
+.chip-btn{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 12px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.chip-btn svg{width:18px;height:18px}
+.chip-btn:disabled{opacity:.45;cursor:default}
+
+.panel{min-width:0;background:var(--surface);border-radius:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:hidden}
+.coachhead{display:flex;align-items:center;gap:12px;padding:14px 18px 12px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.gp{width:58px;height:58px;flex:none;border-radius:50%;position:relative}
+.gp svg{width:100%;height:100%;display:block}
+.gp .mouth{transform-origin:32px 46px;transform-box:view-box}
+.gp.talk .mouth{animation:talkm .22s ease-in-out infinite alternate}
+.gp.talk .head{animation:nod 1.8s ease-in-out infinite}
+@keyframes talkm{from{transform:scaleY(.4)}to{transform:scaleY(1.6)}}
+@keyframes nod{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg)}}
+.gp .head{transform-origin:32px 40px;transform-box:view-box}
+.coachhead h3{font-size:21px}
+.coachhead p{margin:0;color:var(--muted);font-size:13px;font-weight:700}
+.talk-dot{margin-left:auto;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+.script{flex:1;min-height:200px;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+.entry{display:flex;flex-direction:column;gap:4px;opacity:.55;transition:opacity .25s}
+.entry.cur{opacity:1}
+.entry .lab{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.entry p{margin:0;font-size:17px;line-height:1.55;font-weight:600}
+.entry.cur p{font-size:18px}
+.entry.mission .lab,.entry.intro .lab{color:var(--accent)}
+.entry.good .lab,.entry.win .lab,.entry.watch .lab{color:var(--good)}
+.entry.bad .lab{color:var(--bad)}
+.entry.ok .lab,.entry.deeper .lab{color:var(--deep)}
+.entry.deeper,.entry.ok{border-left:4px solid var(--deep);padding-left:12px}
+.entry.bad{border-left:4px solid var(--bad);padding-left:12px}
+.entry.missed{border-left:4px solid var(--accent);padding-left:12px}
+.entry.missed .lab{color:var(--accent)}
+.entry.bridge{background:var(--deep-soft);border-radius:14px;padding:10px 12px}
+.entry.bridge .lab{color:var(--deep)}
+.s{border-radius:5px;transition:background .2s;box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:0 1px}
+.s.now{background:var(--hl)}
+.summary{background:var(--good-soft);border-radius:14px;padding:12px 14px}
+.summary h4{margin:0 0 6px;font-size:18px}
+.summary ul{margin:0;padding-left:20px;font-weight:700}
+.summary .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.ctl{border:none;border-radius:16px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--surface-2);transition:transform .12s}
+.ctl:active{transform:scale(.96)}
+.ctl svg{width:26px;height:26px}
+.ctl b{font-family:var(--f-display);font-size:18px;line-height:1.1}
+.ctl small{font-size:12px;color:var(--muted);font-weight:700;line-height:1.2;text-align:center}
+.ctl.play{background:var(--accent);color:var(--accent-ink)}
+.ctl.play small{color:var(--accent-ink);opacity:.8}
+.ctl.deep{background:var(--deep-soft)}
+.ctl:disabled{opacity:.4;cursor:default;transform:none}
+.ideas{padding:0 14px 14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ideas .t{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.idea{font-size:13px;font-weight:800;background:var(--good-soft);border-radius:999px;padding:3px 10px;animation:pop .45s ease-out}
+.ideas .none{font-size:13px;color:var(--muted);font-weight:600}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+
+@media (max-width:900px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .panel{position:static;max-height:none}
+  .script{max-height:46vh}
+}
+@media (max-width:480px){
+  .brand h1{font-size:24px}
+  .hero{grid-template-columns:minmax(0,1fr)}.hero .gp{width:72px;height:72px}
+  .card{grid-template-columns:88px minmax(0,1fr)}.mini{width:88px}
+  .entry p{font-size:16px}.entry.cur p{font-size:17px}
+  .ctl small{display:none}
+  .frame{padding:6px;border-radius:14px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="brand" id="homeBtn" type="button" aria-label="Opening Quest home"><div class="mark" aria-hidden="true">&#9822;&#xFE0E;</div><div><h1>Opening Quest</h1><small>Chess openings with Grandpa Rook</small></div></button>
+  <button class="pill" id="libBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>All openings</button>
+  <label for="voiceSel" hidden>Grandpa's voice</label><select class="voicesel" id="voiceSel" hidden></select>
+  <button class="pill" id="voiceBtn" type="button" aria-pressed="true"></button>
+</header>
+
+<section class="home" id="home">
+  <div class="hero">
+    <div class="gp" id="heroGp" aria-hidden="true"></div>
+    <div><h2>Pick an opening, and I'll teach you why every move matters</h2>
+    <p>Each lesson has 6 or 7 opening missions, then 5 plan moves to show what a master does next. Grandpa Rook explains every move out loud, and if you try something else, he'll tell you what you'd be missing.</p></div>
+  </div>
+  <div class="shelf"><h3>Openings for White <span class="side">You move first</span></h3><div class="cards" id="cardsW"></div></div>
+  <div class="shelf"><h3>Defenses for Black <span class="side">White moves first</span></h3><div class="cards" id="cardsB"></div></div>
+</section>
+
+<main class="stage" id="stage" hidden>
+  <section class="boardcol" aria-label="Chess board">
+    <div class="wide">
+      <div class="boardhead">
+        <div><h2 id="lessonName">Opening</h2><div class="sub" id="stepInfo"></div></div>
+        <div class="starcount" id="stars" aria-live="polite"></div>
+      </div>
+      <div style="margin-top:10px"><div class="progress" id="progress"></div><div class="phases"><span>The opening</span><span class="p2">The plan</span></div></div>
+    </div>
+    <div class="wide frame">
+      <div class="board" id="board">
+        <div class="grid" id="grid"></div>
+        <div class="pieces" id="pieces"></div>
+        <svg class="arrows" id="arrows" viewBox="0 0 800 800" aria-hidden="true"><defs id="arrowDefs"></defs><g id="arrowG"></g></svg>
+      </div>
+    </div>
+    <div class="wide legend" aria-label="What the path colours mean"><span><i style="background:#FF7A2F"></i>your move</span><span><i style="background:#1C9A60"></i>what it does</span><span><i style="background:#4B5578"></i>opponent</span><span><i style="background:#D9434A"></i>danger</span></div>
+    <div class="wide under">
+      <div class="moves" id="moves"></div>
+      <div class="minibtns">
+        <button class="chip-btn" id="hintBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>Hint</button>
+        <button class="chip-btn" id="restartBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Start over</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel" aria-label="Grandpa Rook">
+    <div class="coachhead">
+      <div class="gp" id="avatar" aria-hidden="true"></div>
+      <div><h3>Grandpa Rook</h3><p>Everything I say shows up here</p></div>
+      <span class="talk-dot" id="talkState">Ready</span>
+    </div>
+    <div class="script" id="script" aria-live="polite"></div>
+    <div class="controls">
+      <button class="ctl" id="repeatBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg><b>Repeat</b><small>hear it again</small></button>
+      <button class="ctl play" id="playBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg><b>Play</b><small>show me the move</small></button>
+      <button class="ctl deep" id="deepBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg><b>Go deeper</b><small>tell me more</small></button>
+    </div>
+    <div class="ideas" id="ideas"></div>
+  </aside>
+</main>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+/* ---------------- Tiny chess engine (legal moves, castling, en passant) ---------------- */
+const FILES='abcdefgh';
+const S=n=>FILES.indexOf(n[0])+(+n[1]-1)*8;
+const N=i=>FILES[i%8]+((i>>3)+1);
+const KN=[[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]];
+const KG=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+const DIAG=[[1,1],[1,-1],[-1,1],[-1,-1]],ORTH=[[1,0],[-1,0],[0,1],[0,-1]];
+const onB=(f,r)=>f>=0&&f<8&&r>=0&&r<8;
+function startState(){
+  const b=Array(64).fill(null),back='rnbqkbnr';
+  for(let f=0;f<8;f++){b[f]={t:back[f],c:'w'};b[8+f]={t:'p',c:'w'};b[48+f]={t:'p',c:'b'};b[56+f]={t:back[f],c:'b'};}
+  return{b,turn:'w',cr:{K:1,Q:1,k:1,q:1},ep:-1};
+}
+function attacked(b,s,by){
+  const f=s%8,r=s>>3,pr=by==='w'?r-1:r+1;
+  for(const df of[-1,1]){const pf=f+df;if(onB(pf,pr)){const p=b[pr*8+pf];if(p&&p.c===by&&p.t==='p')return true;}}
+  for(const[df,dr]of KN){const tf=f+df,tr=r+dr;if(onB(tf,tr)){const p=b[tr*8+tf];if(p&&p.c===by&&p.t==='n')return true;}}
+  for(const[df,dr]of KG){const tf=f+df,tr=r+dr;if(onB(tf,tr)){const p=b[tr*8+tf];if(p&&p.c===by&&p.t==='k')return true;}}
+  for(const[dirs,ts]of[[DIAG,'bq'],[ORTH,'rq']])for(const[df,dr]of dirs){
+    let tf=f+df,tr=r+dr;
+    while(onB(tf,tr)){const p=b[tr*8+tf];if(p){if(p.c===by&&ts.includes(p.t))return true;break;}tf+=df;tr+=dr;}
+  }
+  return false;
+}
+function pseudo(st){
+  const{b,turn:c}=st,opp=c==='w'?'b':'w',out=[];
+  for(let s=0;s<64;s++){
+    const p=b[s];if(!p||p.c!==c)continue;const f=s%8,r=s>>3;
+    const add=(to,x)=>out.push(Object.assign({from:s,to,piece:p.t,color:c,captured:b[to]?b[to].t:null},x||{}));
+    if(p.t==='p'){
+      const d=c==='w'?1:-1,start=c==='w'?1:6,last=c==='w'?7:0,r1=r+d;
+      if(onB(f,r1)&&!b[r1*8+f]){add(r1*8+f,r1===last?{promo:'q'}:null);if(r===start&&!b[(r+2*d)*8+f])add((r+2*d)*8+f,{dbl:1});}
+      for(const df of[-1,1]){const tf=f+df;if(!onB(tf,r1))continue;const t=r1*8+tf;
+        if(b[t]&&b[t].c===opp)add(t,r1===last?{promo:'q'}:null);else if(t===st.ep)add(t,{ep:1,captured:'p'});}
+    }else if(p.t==='n'||p.t==='k'){
+      for(const[df,dr]of(p.t==='n'?KN:KG)){const tf=f+df,tr=r+dr;if(!onB(tf,tr))continue;const t=tr*8+tf;if(!b[t]||b[t].c===opp)add(t);}
+      if(p.t==='k'){
+        const home=c==='w'?4:60,K=c==='w'?'K':'k',Q=c==='w'?'Q':'q';
+        if(s===home&&!attacked(b,home,opp)){
+          const rk=b[home+3];
+          if(st.cr[K]&&rk&&rk.t==='r'&&rk.c===c&&!b[home+1]&&!b[home+2]&&!attacked(b,home+1,opp)&&!attacked(b,home+2,opp))add(home+2,{castle:'k'});
+          const rq=b[home-4];
+          if(st.cr[Q]&&rq&&rq.t==='r'&&rq.c===c&&!b[home-1]&&!b[home-2]&&!b[home-3]&&!attacked(b,home-1,opp)&&!attacked(b,home-2,opp))add(home-2,{castle:'q'});
+        }
+      }
+    }else{
+      const dirs=p.t==='b'?DIAG:p.t==='r'?ORTH:DIAG.concat(ORTH);
+      for(const[df,dr]of dirs){let tf=f+df,tr=r+dr;
+        while(onB(tf,tr)){const t=tr*8+tf;if(b[t]){if(b[t].c===opp)add(t);break;}add(t);tf+=df;tr+=dr;}}
+    }
+  }
+  return out;
+}
+function make(st,m){
+  const b=st.b.slice(),cr=Object.assign({},st.cr),p=b[m.from];
+  b[m.to]=m.promo?{t:'q',c:p.c}:p;b[m.from]=null;
+  if(m.ep)b[m.to+(p.c==='w'?-8:8)]=null;
+  if(m.castle){const home=p.c==='w'?4:60;if(m.castle==='k'){b[home+1]=b[home+3];b[home+3]=null;}else{b[home-1]=b[home-4];b[home-4]=null;}}
+  if(p.t==='k'){if(p.c==='w'){cr.K=cr.Q=0}else{cr.k=cr.q=0}}
+  for(const s of[m.from,m.to]){if(s===0)cr.Q=0;if(s===7)cr.K=0;if(s===56)cr.q=0;if(s===63)cr.k=0;}
+  return{b,turn:st.turn==='w'?'b':'w',cr,ep:m.dbl?(m.from+m.to)/2:-1};
+}
+function legal(st){
+  return pseudo(st).filter(m=>{const n=make(st,m),k=n.b.findIndex(p=>p&&p.t==='k'&&p.c===st.turn);return!attacked(n.b,k,n.turn);});
+}
+
+/* ---------------- Lesson scripts ---------------- */
+const NAME={p:'pawn',n:'knight',b:'bishop',r:'rook',q:'queen',k:'king'};
+const VAL={p:1,n:3,b:3,r:5,q:9,k:100};
+const HOME={n:[1,6],b:[2,5],r:[0,7],q:[3],k:[4]};
+const GLYPH={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+
+const G={
+  queen:"Whoa, the queen! She's your most powerful piece, so it's exciting to use her. But if she comes out this early, {O}'s knights and bishops will chase her around, and every time she runs away, {O} gets a free move. Keep her safe at home for now and bring out the smaller pieces first.",
+  king:"Your king is not a fighter at the start of the game! If he walks around now, he can never castle, and he stays in danger in the middle of the board. Keep him at home until he can castle.",
+  rook:"Rooks are super strong, but they need open lines to work, and those only appear later in the game. Right now your rooks are stuck behind pawns. Bring out your knights and bishops first.",
+  rim:"Ooh, careful! A knight on the edge of the board can only jump to a few squares. Chess players have a saying: a knight on the rim is dim! Keep your knights pointing at the center.",
+  twice:"You already moved that piece! The opening is a race to wake up your whole army. Moving the same piece twice is like one player taking two turns while the rest of the team is still asleep. Bring out a new piece instead.",
+  fpawn:"The f-pawn is like a guard standing right next to your king. If it moves, it opens a door for {O} to attack your king. Let's keep that guard at home for now.",
+  edge:"Pawns on the side of the board don't help fight for the center, and the center is where the action is. In the opening, use your middle pawns and bring out your pieces.",
+  bishopFirst:"Bishops are great, but remember the rule: knights before bishops! Knights are slow and need a head start. A bishop can zoom out later in just one move.",
+  pawnNow:"Pawn moves can be useful, but right now it's time to wake up a piece. Every pawn move you make is a turn where a knight or bishop stays asleep.",
+  generic:"That's a real chess move, but it doesn't help our plan right now. Think about the mission!"
+};
+const TRAP_E5="Grabbing that pawn looks tasty, but it's a trap! Black's knight on c6 protects e5. If you take, Black takes your knight, and you've swapped a whole knight for one tiny pawn. That's a bad deal!";
+const QUEEN_GUARD="The queen could protect it, but she's far too valuable to be a bodyguard. If she stands there, Black's pieces will chase her. Let a little pawn do the job.";
+
+function stepE4(other){return{
+  m:'e2e4',san:'e4',r:'e7e5',rsan:'e5',glow:['d4','e4','d5','e5'],idea:'Grab the center',
+  goal:"Mission one: grab the center! See the four glowing squares in the middle? They're like the top of a hill. Pieces standing there can reach everywhere. Which pawn can jump two squares and land right on one of them? Think about the pawn in front of your king.",
+  nudge:"Move the king's pawn, the one on e2, two squares up to e4.",
+  yes:"Boom! Your pawn stands in the center now, and it guards the squares d5 and f5. Even better, it opened two doors, one for your queen and one for your bishop. One move, lots of power!",
+  deeper:"Here's a secret: pawns are amazing guards. No enemy piece wants to land on a square where a pawn can capture it, because pawns are the cheapest piece. Your pawn on e4 guards d5 and f5, so Black's pieces can't land there safely. And look at your bishop on f1. Before, it was stuck behind the pawn. Now it has a clear road across the board. The best opening moves do two jobs at once.",
+  ok:{d2d4:`Great thinking! Pushing the queen's pawn also grabs the center. That's how the Queen's Gambit starts, and it has its own lesson. For ${other}, we push the king's pawn instead.`,
+      g1f3:`A knight move first is not bad at all! But ${other} starts by grabbing the center with a pawn. Try the pawn in front of your king.`,
+      b1c3:`Bringing out a knight is a good idea! But ${other} starts by grabbing the center with a pawn. Try the pawn in front of your king.`},
+  wrong:{e2e3:"Close! But one step forward is a bit shy. Moving two squares grabs more space and puts your pawn right in the center. Try going two squares.",
+         d2d3:"One step is a bit shy, and we want the king's pawn today. Push the pawn in front of your king two squares."},
+  replyText:"Black copies you and grabs the center too. Now Black's pawn on e5 and your pawn on e4 are standing nose to nose."
+}}
+function stepNf3(bishopNote){return{
+  m:'g1f3',san:'Nf3',r:'b8c6',rsan:'Nc6',glow:['e5'],idea:'Knights first',
+  goal:"Mission two: wake up a knight! Knights are the only pieces that can jump over others, so they're ready to go right away. Can you bring out a knight so that it attacks Black's pawn on e5?",
+  nudge:"Jump the knight from g1 to f3. From there, it attacks the pawn on e5.",
+  yes:"Fantastic! Your knight jumped into the game and is attacking the pawn on e5. Black has to protect it right now. When you bring out a piece and make a threat at the same time, you're the boss of the game!",
+  deeper:"Why knights before bishops? A bishop can wait, because it can zoom far in one move whenever you want. But a knight is slow. It only hops a little at a time, so it needs a head start. On f3 your knight also guards the center square d4, and it helps protect your king. Plus, it clears a square so you can castle soon.",
+  ok:{b1c3:"Nice, that knight also comes out and helps the center! But first we want the other knight, on g1. It attacks the pawn on e5 and gets your king ready to castle.",
+      d2d4:"Brave! Pushing in the center is a real idea. But in this opening we bring out a piece first. Can you find a knight that attacks e5?"},
+  wrong:{d1h5:"Wow, the queen wants to attack! But it's too early. Black will bring out a knight to chase her, and you'll waste moves running away. Keep the queen safe at home and let a smaller piece go first.",
+         d1f3:"The queen on f3 looks scary, but it's too early. She takes the knight's favourite square, and Black's pieces will chase her. Let the knight have f3!",
+         f1c4:bishopNote,f1b5:bishopNote,
+         f2f4:"Ooh, that's a wild attacking idea called the King's Gambit. It's exciting, but it opens up the area around your king. Today we play smart and safe, and bring a knight out first."},
+  replyText:"Black brings out a knight too, and it protects the pawn on e5. Clever! Black is following the same rules as you."
+}}
+
+const LESSONS={
+italian:{name:'Italian Game',tag:'Aim a bishop at the weakest square',icon:'♝',
+  intro:"Welcome to the Italian Game! You're playing White, so you move first. In this opening, your bishop zooms out and aims straight at Black's weakest square. Ready? Let's go!",
+  outro:"You did it! You played the whole Italian Game. Your king is safe, your knights and bishop are out, and your center is strong.",
+  finalDeeper:"Here's the big picture. In the Italian Game, every move did a job. Your pawn took the center, your knights came out first, your bishop aimed at f7, and you castled before the fight began. Next time you play, try to follow the same plan, even if your opponent plays different moves.",
+  summary:['Grab the center with a pawn','Knights out first, they are slow','Aim bishops at weak squares like f7','Castle early to keep your king safe','Protect pawns with pawns','Wake up a new piece every move'],
+  steps:[
+    stepE4('the Italian Game'),
+    stepNf3("Good idea, the bishop is coming soon! But knights first. The knight is slower, so it needs to come out early, and right now it can make a threat on e5. The bishop can come next turn."),
+    {m:'f1c4',san:'Bc4',r:'f8c5',rsan:'Bc5',glow:['f7'],idea:'Bishops on long roads',
+     goal:"Mission three: time for a bishop! Bishops love long diagonal roads. Find a square where your bishop on f1 points straight at Black's weakest square, f7. That pawn is only protected by the king!",
+     nudge:"Slide the bishop from f1 to c4. It will aim right at f7.",
+     yes:"Perfect, this is the Italian Game! Your bishop on c4 is like a laser aimed at f7, the weakest spot next to Black's king. And look, the squares between your king and rook are empty now. You're almost ready to castle!",
+     deeper:"Why is f7 weak? At the start of the game, it's only protected by the king. If you add another attacker later, like your knight jumping to g5, Black has to be very careful. Your bishop on c4 also watches the center square d5. And by moving your knight and bishop, you cleared the path for your king to castle. Every move is building toward something.",
+     ok:{b1c3:"Knights before bishops is a great rule, and you followed it! But here the bishop has a very important job, aiming at f7. And moving it lets your king castle next turn. Try the bishop on f1.",
+         d2d4:"Pushing d4 here is a real opening called the Scotch Game. Great idea! But for the Italian, we bring out the bishop first."},
+     wrong:{f1b5:"That's a strong square too! It's actually a different opening, the Ruy Lopez, and it has its own lesson. For the Italian Game, put your bishop on c4 so it aims at f7.",
+            f1d3:"Hmm, on d3 the bishop blocks your own d-pawn. Then that pawn can't move, and your other bishop gets stuck behind it. Pieces should never block their own pawns. Find a better diagonal.",
+            f1e2:"That's a safe square, but a bit shy. On e2 the bishop doesn't attack anything. Let's be brave and aim at Black's weak spot, f7.",
+            f3e5:TRAP_E5},
+     replyText:"Black copies you again! Black's bishop on c5 aims at your weak square, f2. Both sides are getting ready for battle."},
+    {m:'e1g1',san:'O-O',r:'g8f6',rsan:'Nf6',glow:['g1','f1'],idea:'Castle early',
+     goal:"Mission four: hide your king! The middle of the board is about to get busy, and that's dangerous for a king. The squares between your king and rook are empty. Do you know the special move where the king and rook switch sides?",
+     nudge:"Castle! Move your king two squares to the right, from e1 to g1. The rook jumps over by itself.",
+     yes:"Castled! Your king is tucked safely in the corner behind a wall of pawns, like a real castle. And your rook just came out of the corner, ready to fight. Two good things in one move!",
+     deeper:"Castling is the only move where two pieces move at once. A king in the middle can get attacked from lots of directions once the center opens up. In the corner, he's protected by the pawns on f2, g2 and h2. And the rook, which was stuck in the corner, now stands on f1, closer to the action. Strong players almost always castle in the first ten moves.",
+     ok:{c2c3:"That's a good plan move, but safety first! Castle your king now, before the center opens up.",
+         d2d3:"Nice, that's a useful move, and we'll play it very soon! But first, let's get your king safe. Castle!",
+         b1c3:"Bringing out the knight is good, but your king is still in the middle. Castle first, then bring out more pieces."},
+     wrong:{f3g5:"Ooh, attacking f7! But it's a lonely attack. Black can just defend, and your knight will have to run back, wasting time. Attacks work best when your king is safe and all your pieces are ready. Let's castle first.",
+            c4f7:"Bishop takes f7 with check looks exciting, but Black's king just captures your bishop! You gave away a bishop for a pawn. Let's keep our pieces.",
+            e1f1:G.king,e1e2:G.king,f3e5:TRAP_E5},
+     replyText:"Black brings out the other knight. Watch out, it's attacking your pawn on e4! You'll need to protect it."},
+    {m:'d2d3',san:'d3',r:'d7d6',rsan:'d6',glow:['e4','c1'],idea:'Pawns make great bodyguards',
+     goal:"Mission five: protect your pawn! Black's knight on f6 is attacking your pawn on e4. Find a pawn move that protects e4 and also opens a road for your other bishop on c1.",
+     nudge:"Push the d-pawn one square, from d2 to d3. It protects e4 and frees your bishop.",
+     yes:"Excellent! Your d-pawn guards e4, so it's safe. And look at your bishop on c1. Its road is open now! Protecting and developing at the same time. You're thinking like a chess master!",
+     deeper:"Pawns make the best bodyguards. If a knight or the queen guarded e4, they'd be stuck babysitting. A pawn is the cheapest piece, so it doesn't mind the job. Also, pawns that hold hands diagonally, like d3 and e4, make a strong chain that's very hard to break.",
+     ok:{b1c3:"Smart! A knight on c3 also protects e4. That's a good move! But here we use a pawn as the bodyguard, so the knight stays free for later. Try a pawn.",
+         f1e1:"The rook protects e4, nice idea! But a pawn is a better bodyguard, and it also opens your bishop's road. Try a pawn."},
+     wrong:{d1e2:QUEEN_GUARD,
+            d2d4:"Pushing d4 is brave! But then Black can capture on d4 or grab your pawn on e4, and the center gets messy while your pieces aren't ready. Let's protect e4 calmly first.",
+            f3g5:"Attacking f7 again? Remember, Black's knight is attacking your e4 pawn right now. Fix your own problem first, then attack!",
+            f3e5:TRAP_E5},
+     replyText:"Black does the same thing! The pawn on d6 protects e5 and opens a road for Black's bishop. Both armies are getting ready."},
+    {m:'b1c3',san:'Nc3',r:'e8g8',rsan:'O-O',glow:['d5','e4'],idea:'Wake up every piece',
+     goal:"Final mission: your knight on b1 is still asleep! Remember, knights before bishops. Where can it jump to help the center?",
+     nudge:"Jump the knight from b1 to c3. From there, it watches d5 and e4.",
+     yes:"Amazing! Your last knight is awake and watching the center squares d5 and e4. Your king is safe, both knights are out, your bishop aims at f7, and your center is strong. That's a perfect opening!",
+     deeper:"Count your pieces that are working: two knights, one bishop, and a castled king with an active rook. The knight on c3 guards d5 and e4, so Black can't easily take over the middle. Next, you'd bring out your last bishop and connect your rooks. When all your pieces work together, you're ready for the middlegame!",
+     ok:{b1d2:"Good, that brings out a knight! But on d2 it blocks your bishop's road. On c3 it controls the center much better."},
+     wrong:{c1g5:G.bishopFirst,c1e3:G.bishopFirst,f3g5:"The knight on f3 has already moved! Moving the same piece again while your other knight sleeps is slow. Wake up the knight on b1."},
+     replyText:"Black castles too. Both kings are safe, and the real battle can begin!"}
+  ]},
+ruy:{name:'Ruy Lopez',tag:'Put pressure on the bodyguard',icon:'♞',
+  intro:"Welcome to the Ruy Lopez, one of the favourite openings of the best players in the world! Your bishop is going on a secret mission: bothering the knight that protects Black's center. Ready? Let's go!",
+  outro:"You did it! You played the whole Ruy Lopez. Your king is safe, your rook rules the e-file, and your bishop is aiming at f7.",
+  finalDeeper:"Here's the big picture. In the Ruy Lopez, you never attacked the e5 pawn head-on. Instead, you bothered its bodyguard, the knight on c6. That kind of slow, sneaky pressure makes your opponent nervous for the whole game. Remember: if you can't attack something directly, attack whatever is protecting it.",
+  summary:['Grab the center with a pawn','Knights out first','Attack the defender, not the pawn','Retreat but keep the pressure','Castle early','Rooks love open lines'],
+  steps:[
+    stepE4('the Ruy Lopez'),
+    stepNf3("Bishops are coming soon, but knights first! The knight is slower, so it needs to come out early, and right now it can make a threat on e5."),
+    {m:'f1b5',san:'Bb5',r:'a7a6',rsan:'a6',glow:['c6','e5'],idea:'Attack the defender',
+     goal:"Mission three: Black's knight on c6 is the bodyguard of the e5 pawn. What if your bishop bothers that bodyguard? Find the square where your bishop attacks the knight on c6.",
+     nudge:"Slide the bishop from f1 to b5. It attacks the knight that protects e5.",
+     yes:"This is the Ruy Lopez! Your bishop attacks the knight on c6, and that knight is the one guarding e5. If the bodyguard disappears, the pawn on e5 is in trouble. Plus, your king is almost ready to castle!",
+     deeper:"This is called attacking the defender. You don't attack the pawn directly. Instead, you put pressure on the piece that protects it. Black's knight can't just run away, because then e5 would fall. That kind of sneaky pressure is why top players love this opening.",
+     ok:{b1c3:"Knights before bishops is a great rule, and you followed it! But today's secret mission is for the bishop. Find the square where it attacks the knight on c6.",
+         d2d4:"Pushing d4 is a real opening called the Scotch Game. Great idea! But for the Ruy Lopez, the bishop goes on its secret mission first."},
+     wrong:{f1c4:"That's the Italian Game, a great opening with its own lesson! But today we're learning the Ruy Lopez. Find a square where the bishop attacks the knight on c6.",
+            f1d3:"Hmm, on d3 the bishop blocks your own d-pawn, and then your other bishop gets stuck too. Pieces should never block their own pawns. Find the square that attacks the knight on c6.",
+            f1e2:"That's safe, but shy. On e2 the bishop doesn't bother anyone. Let's go on the secret mission and attack the knight on c6.",
+            f3e5:TRAP_E5},
+     replyText:"Black kicks your bishop with a pawn on a6! Your bishop is attacked. Don't worry, you have a plan."},
+    {m:'b5a4',san:'Ba4',r:'g8f6',rsan:'Nf6',glow:['c6','e8'],idea:'Retreat but keep the pressure',
+     goal:"Mission four: your bishop is attacked by the pawn on a6. You could swap it for the knight, but bishops are valuable. Can you step the bishop back, but keep it pointing at the knight on c6?",
+     nudge:"Move the bishop from b5 to a4. It stays on the same diagonal, still looking at c6 and all the way to Black's king.",
+     yes:"Great escape! The bishop is safe on a4, and it's still on the same road, aiming right at the knight on c6. You kept the pressure on!",
+     deeper:"A good retreat keeps a piece active. On a4, your bishop still looks at the knight on c6. Meanwhile, Black's pawn on a6 used up a move, and pawns can never move backward. Later, that pawn push might leave holes in Black's position.",
+     ok:{b5c6:"That's a real opening too, called the Exchange Variation! But if you swap your bishop now, it can't help you later in the game. Let's keep it and step back on the same diagonal.",
+         b5c4:"That square is safe! But on a4 your bishop keeps bothering the knight on c6. Try staying on the same diagonal."},
+     wrong:{b5e2:"Running all the way home wastes time, and the bishop stops doing its job. Keep it active!",
+            b5f1:"Going all the way back to the start means you wasted two moves! Keep the bishop active on the same diagonal.",
+            e1g1:"Castling is great, but your bishop is under attack right now! If you castle, Black's pawn captures it. Rescue the bishop first, then castle.",
+            f3e5:TRAP_E5},
+     replyText:"Black brings out a knight, and it attacks your pawn on e4."},
+    {m:'e1g1',san:'O-O',r:'f8e7',rsan:'Be7',glow:['g1','f1'],idea:'Castle early',
+     goal:"Mission five: Black's knight attacks your pawn on e4. But here's a surprise: you don't need to protect it right now! Your king's safety comes first. What special move puts your king in a safe corner?",
+     nudge:"Castle! Move your king from e1 two squares to the right, to g1.",
+     yes:"Castled! Your king is safe, and your rook is out of the corner. If Black grabs your pawn on e4 now, your rook can come to e1 and win it back. Safety and power!",
+     deeper:"Sometimes the best defense is a safe king and strong pieces. In the Ruy Lopez, if Black grabs e4, White can open lines toward Black's king, which is still in the middle. A king stuck in the center while lines open up is in big danger. So that pawn is really bait!",
+     ok:{d2d3:"Protecting e4 is good thinking, and it's a real move! But here, strong players castle first. Your king's safety matters most.",
+         b1c3:"Good, bringing out a knight and protecting e4! But let's get the king safe first.",
+         a4c6:"Swapping your bishop is a real idea, but then your secret mission is over. Let's get the king safe first and keep the pressure."},
+     wrong:{d1e2:QUEEN_GUARD,e1f1:G.king,e1e2:G.king},
+     replyText:"Black brings out a bishop and gets ready to castle too."},
+    {m:'f1e1',san:'Re1',r:'b7b5',rsan:'b5',glow:['e4','e5'],idea:'Rooks love open lines',
+     goal:"Mission six: rooks love open lines that go up and down the board. Can you put your rook on the same line as your pawn on e4, to protect it and point toward the center?",
+     nudge:"Move the rook from f1 to e1. It protects e4 from behind.",
+     yes:"Rook power! Your rook on e1 protects the pawn on e4 and points up the e-file toward Black's king. And there's a hidden threat: now you can swap your bishop for the knight on c6 and then win the pawn on e5!",
+     deeper:"Here's the hidden threat. If your bishop takes the knight on c6, Black's pawn on e5 loses its bodyguard. Then your knight on f3 can grab e5, because your rook keeps e4 safe. That's the Ruy Lopez idea: pressure, pressure, pressure!",
+     ok:{d2d3:"Protecting e4 with a pawn is solid and real! But the rook move does even more, it gets a sleepy piece into the game. Try the rook.",
+         b1c3:"A good developing move! But the rook can protect e4 and join the action. Try the rook.",
+         c2c3:"That's part of a good plan for later! But right now, protect e4 with your rook."},
+     wrong:{a4c6:"Swapping now is a bit too early. If you take and then grab e5, Black's knight can grab your pawn on e4. Protect e4 first, then the threat is real!"},
+     replyText:"Black kicks your bishop again with a pawn on b5! The bishop is attacked."},
+    {m:'a4b3',san:'Bb3',r:'e8g8',rsan:'O-O',glow:['f7'],idea:'Every move with a purpose',
+     goal:"Final mission: your bishop is attacked by the pawn on b5. Where can it go to be safe, and point at Black's weakest square, f7?",
+     nudge:"Move the bishop from a4 to b3. It's safe there and aims straight at f7.",
+     yes:"Brilliant! Your bishop is safe on b3 and aiming at f7 like a laser. Your king is safe, your knight and bishop are active, and your rook controls the e-file. You've mastered the Ruy Lopez!",
+     deeper:"Look how far your bishop travelled: f1, b5, a4, and now b3. Usually moving the same piece again and again is bad. But here, every bishop move forced Black to push a pawn, and pawn moves can leave holes. Now the bishop on b3 watches f7 and d5, and Black has to keep an eye on it for the whole game.",
+     wrong:{a4b5:"Black's pawn on a6 is still guarding b5, so your bishop would be captured there! Find a safe square that aims at f7."},
+     replyText:"Black castles. Both kings are safe, and the battle can begin!"}
+  ]},
+qg:{name:"Queen's Gambit",tag:'Offer a pawn as bait',icon:'♛',
+  intro:"Welcome to the Queen's Gambit! This time you start with the queen's pawn. A gambit means you offer your opponent a pawn. Sounds crazy? You'll see why it's actually a clever trick. Let's go!",
+  outro:"You did it! You played the whole Queen's Gambit. Both knights are out, your bishop is active, and your center is rock solid.",
+  finalDeeper:"Here's the big picture. In the Queen's Gambit, you offered a pawn to pull Black's pawn away from the center. When Black said no thanks, you kept piling up pressure on d5 with your pawn, knight and bishop. Your next steps would be to bring out your last bishop and castle. Then your rooks can use the open lines.",
+  summary:['Start with d4, protected by the queen','A gambit is bait, not a gift','Gang up on a pawn with more attackers','Get bishops out before pawns block them','Not every pawn needs to rush','Knights out, then castle'],
+  steps:[
+    {m:'d2d4',san:'d4',r:'d7d5',rsan:'d5',glow:['d4','e4','d5','e5'],idea:'Grab the center',
+     goal:"Mission one: grab the center! This time, think about the pawn in front of your queen. How far can it go to stand right in the middle?",
+     nudge:"Move the pawn from d2 two squares up to d4.",
+     yes:"Great! Your pawn on d4 stands in the center and guards the squares c5 and e5. And here's a bonus: this pawn is already protected by your queen, so it's extra solid.",
+     deeper:"There are two main ways to start a chess game: the king's pawn and the queen's pawn. A pawn on d4 is protected by the queen right away, so it's very hard to attack. Openings that start with d4 are usually calmer, and they're about squeezing your opponent slowly, like a python!",
+     ok:{e2e4:"Great move! That's how the Italian Game and Ruy Lopez start, and they have their own lessons. For the Queen's Gambit, we push the queen's pawn. Try d4.",
+         g1f3:"A knight move first is not bad! But the Queen's Gambit starts by grabbing the center with the queen's pawn."},
+     wrong:{d2d3:"One step is a bit shy. Moving two squares puts your pawn right in the center. Try going two squares."},
+     replyText:"Black blocks you with a pawn on d5. Now the two pawns are stuck, face to face."},
+    {m:'c2c4',san:'c4',r:'e7e6',rsan:'e6',glow:['c4','d5'],idea:'A gambit is bait',
+     goal:"Mission two: the gambit! Black's pawn on d5 is strong. Can you push a pawn next to your d-pawn so that it attacks Black's pawn on d5? This is your offer, your gambit!",
+     nudge:"Push the c-pawn two squares, from c2 to c4. It attacks the pawn on d5.",
+     yes:"You offered the gambit! Your pawn on c4 attacks d5. If Black takes it, Black's pawn leaves the center, and you can usually win your pawn back later. If Black doesn't take, you keep the pressure on. Either way, you win!",
+     deeper:"Why offer a pawn? Black's pawn on d5 is the boss of the center. If it captures on c4, it walks away from the middle, and your e-pawn can step up and take over. Usually White wins the pawn back too. So it's not really a gift. It's bait! That's why this opening is so popular.",
+     ok:{g1f3:"A great developing move! But first, let's attack d5 with a pawn. Try the c-pawn.",
+         c1f4:"Getting the bishop out is a real plan! But the Queen's Gambit attacks d5 with a pawn first. Try the c-pawn."},
+     wrong:{b1c3:"A knight on c3 blocks your c-pawn! Then you can't play the gambit at all. Push the c-pawn first, then the knight can come to c3 behind it.",
+            e2e4:"Pushing e4 now just loses the pawn. Black's pawn on d5 captures it, and none of your pieces can capture back. Try attacking d5 with a different pawn."},
+     replyText:"Black says no thanks to your gift, and protects d5 with another pawn. This is called the Queen's Gambit Declined. Now Black's center is extra strong."},
+    {m:'b1c3',san:'Nc3',r:'g8f6',rsan:'Nf6',glow:['d5'],idea:'Gang up on a target',
+     goal:"Mission three: pile up on d5! Your c4 pawn is already attacking it. Bring out a knight so that it attacks d5 too. Two attackers are better than one!",
+     nudge:"Jump the knight from b1 to c3. Now you attack d5 twice.",
+     yes:"Super! Your knight joins the attack on d5. Now two of your pieces are pointing at that pawn. Knight out early, and the move makes pressure. That's a great opening move!",
+     deeper:"In chess, you count attackers and defenders. Your pawn on c4 and knight on c3 attack d5. Black's pawn on e6 and queen on d8 defend it. If you ever have more attackers than defenders, you can win the pawn. So Black has to keep adding defenders, and that keeps Black busy instead of attacking you.",
+     ok:{c4d5:"Swapping pawns is a real idea called the Exchange Variation. But for now, let's bring out more pieces and keep the pressure.",
+         g1f3:"A good developing move, and it's coming later! But a knight on c3 attacks d5. Try that one.",
+         e2e3:"Solid, but it closes the road for your bishop on c1. Let's bring out a knight first."},
+     wrong:{d1a4:G.queen,d1b3:G.queen},
+     replyText:"Black brings out a knight, and it protects d5 too. Now d5 has three defenders."},
+    {m:'c1g5',san:'Bg5',r:'f8e7',rsan:'Be7',glow:['f6','d5'],idea:'Bishops out before pawns block them',
+     goal:"Mission four: time for a bishop! Black's knight on f6 is one of the defenders of d5. Can you find a square where your bishop attacks that knight?",
+     nudge:"Slide the bishop from c1 to g5. It attacks the knight on f6.",
+     yes:"Nice shot! Your bishop attacks the knight on f6, and that knight is one of d5's defenders. Bother the defender, and the pawn gets weaker. And notice: your knight came out before your bishop, just like the rule says!",
+     deeper:"Why bring the bishop out now, before you move the e-pawn? Because if you push e3 first, that pawn closes the bishop's road, and the bishop gets stuck inside. Always bring a bishop out before your own pawns block it. That's a mistake even grown-ups make!",
+     ok:{g1f3:"That's a good move too! But let's get the bishop out first, before your e-pawn closes its road.",
+         c1f4:"An active square! But on g5 the bishop attacks the knight that defends d5. That's even more pressure.",
+         c4d5:"Swapping pawns is a real idea, but let's keep building pressure with a bishop first."},
+     wrong:{e2e3:"Careful! If you push e3 now, your bishop on c1 gets locked behind your own pawns. Bring the bishop out first, then push e3.",
+            e2e4:"Pushing e4 looks brave, but Black's pawn and knight can both capture it. Let's develop a piece instead."},
+     replyText:"Black brings out a bishop to protect the knight. Smart defending!"},
+    {m:'e2e3',san:'e3',r:'e8g8',rsan:'O-O',glow:['f1'],idea:"Not every pawn needs to rush",
+     goal:"Mission five: your other bishop on f1 is stuck behind your pawns. Push a pawn just one square to open its road and make your center stronger.",
+     nudge:"Push the e-pawn one square, from e2 to e3. It opens a road for your bishop on f1.",
+     yes:"Well done! Your pawn on e3 supports d4 and opens a road for your bishop on f1. Now you're getting ready to castle!",
+     deeper:"Why one square and not two? On e4, the pawn could be captured by Black's pawn on d5 or the knight on f6. On e3 it's safe, it supports your pawn on d4, and it lets the bishop on f1 come out. Not every pawn needs to rush forward.",
+     ok:{g1f3:"A good move, and it's coming next! But first push a pawn to free your other bishop.",
+         g5f6:"Swapping is possible, but you'd give away your active bishop. Keep the pressure instead!"},
+     wrong:{e2e4:"Pushing e4 looks brave, but Black's pawn on d5 and knight on f6 both attack it. Two attackers and only one defender means you'd lose it. Try one square instead."},
+     replyText:"Black castles! Black's king is now safe in the corner."},
+    {m:'g1f3',san:'Nf3',r:'b8d7',rsan:'Nbd7',glow:['e5','d4'],idea:'Knights out, then castle',
+     goal:"Final mission: one knight is still asleep on g1. Bring it out! Where does it help the center and get your king ready to castle?",
+     nudge:"Jump the knight from g1 to f3. It guards d4 and e5, and clears the way for castling.",
+     yes:"Fantastic! Both knights are out, your bishop is active on g5, your center pawns are strong, and you're almost ready to castle. You played the Queen's Gambit like a champion!",
+     deeper:"Look at your army: knights on c3 and f3, a bishop on g5, and pawns on c4, d4 and e3. Your next plan would be to bring out your last bishop and castle. Then your rooks can use the c-file, the road your c-pawn opened. Every piece has a job.",
+     ok:{d1c2:"That's a real move, and the queen is safe on c2! But knights first. Get the knight on g1 into the game.",
+         g5f6:"Swapping is possible, but you'd give away your active bishop. Let's wake up the knight instead."},
+     wrong:{f1d3:G.bishopFirst,f1e2:G.bishopFirst,g1e2:"On e2 the knight blocks your bishop on f1! On f3 it's much happier."},
+     replyText:"Black brings out the last knight too. Both armies are ready, and the middlegame begins!"}
+  ]}
+};
+
+/* Paths drawn while the coach explains (prefix ~ = Black's piece, ! = danger) and the opportunity a different move gives up */
+const EXTRA={
+  italian:[
+    {show:['e4d5','e4f5','f1a6'],missed:"This turn was your chance to put a pawn in the middle of the board and open doors for your queen and bishop. Without it, Black can grab the center first."},
+    {show:['f3e5'],rshow:['~c6e5'],missed:"This turn was your chance to wake up a knight and attack Black's pawn at the same time. A threat forces Black to answer you, instead of doing whatever Black wants."},
+    {show:['c4f7'],rshow:['!c5f2'],missed:"This turn was your chance to put a bishop on a long road aimed at f7, Black's weakest square, and get one step closer to castling."},
+    {show:[],rshow:['!f6e4'],missed:"This turn was your chance to hide your king in the corner and wake up your rook, both in a single move. If you wait, the center can open while your king is still standing there."},
+    {show:['d3e4','c1h6'],rshow:['~d6e5'],missed:"Black's knight is attacking your pawn on e4 right now. This turn was your chance to protect it with a cheap bodyguard and open your other bishop's road at the same time."},
+    {show:['c3d5','c3e4'],missed:"This turn was your chance to wake up your last sleeping knight and put it where it watches the center. Every sleeping piece is a player missing from your team."}],
+  ruy:[
+    {show:['e4d5','e4f5','f1a6'],missed:"This turn was your chance to put a pawn in the middle of the board and open doors for your queen and bishop. Without it, Black can grab the center first."},
+    {show:['f3e5'],rshow:['~c6e5'],missed:"This turn was your chance to wake up a knight and attack Black's pawn at the same time. A threat forces Black to answer you, instead of doing whatever Black wants."},
+    {show:['b5c6','~c6e5'],rshow:['!a6b5'],missed:"This turn was your chance to attack the knight that guards Black's center pawn. Bothering the bodyguard puts pressure on Black for the whole game."},
+    {show:['a4c6'],rshow:['!f6e4'],missed:"Your bishop is under attack! This turn was your chance to save it and still keep it aimed at Black's knight. If you don't save it, Black captures it for free."},
+    {show:[],missed:"This turn was your chance to make your king safe and bring your rook out, before the middle of the board opens up."},
+    {show:['e1e4','a4c6'],rshow:['!b5a4'],missed:"This turn was your chance to bring a sleepy rook into the game, protect your pawn on e4, and set up a hidden threat against e5."},
+    {show:['b3f7'],missed:"Your bishop is under attack again! This turn was your chance to save it and aim it at f7, Black's weakest square."}],
+  qg:[
+    {show:['d4c5','d4e5','d1d4'],missed:"This turn was your chance to put a pawn in the center that your queen already protects. Without it, Black can grab the middle first."},
+    {show:['c4d5'],rshow:['~e6d5'],missed:"This turn was your chance to challenge Black's strong center pawn with your gambit. If you don't, Black's pawn on d5 sits there comfortably forever."},
+    {show:['c3d5','c4d5'],rshow:['~f6d5'],missed:"This turn was your chance to wake up a knight and gang up on the pawn on d5 at the same time. Two jobs in one move!"},
+    {show:['g5f6','~f6d5'],missed:"This turn was your chance to get your bishop out before your own pawns block its road, and to bother one of d5's defenders."},
+    {show:['e3d4','f1d3'],missed:"This turn was your chance to open a road for your other bishop and make your center stronger, without putting a pawn in danger."},
+    {show:['f3e5','f3d4'],missed:"This turn was your chance to wake up your last knight and get your king ready to castle."}]
+};
+for(const k in EXTRA)EXTRA[k].forEach((x,i)=>Object.assign(LESSONS[k].steps[i],x));
+
+/* ---------------- After-the-opening plans for the first three lessons ---------------- */
+const plan=list=>list.map(s=>Object.assign(s,{plan:true}));
+LESSONS.italian.steps.push(...plan([
+  {m:'c1g5',san:'Bg5',r:'h7h6',rsan:'h6',glow:['f6','d8'],idea:'Pin a piece',show:['g5d8'],rshow:['!h6g5'],
+   goal:"The opening is done, so now we make a plan! Your last bishop on c1 is still asleep. Can you wake it up so it attacks Black's knight on f6, with Black's queen hiding right behind it?",
+   yes:"Ooh, a pin! Your bishop attacks the knight on f6, and right behind that knight is Black's queen. If the knight moves, the queen gets captured. So the knight is stuck, pinned like a butterfly!",
+   deeper:"A pin is one of the most powerful tricks in chess. The pinned piece can't move without letting something more valuable get captured. While that knight is stuck, it can't jump into the game, and you can pile up more pressure on it.",
+   missed:"This turn was your chance to wake up your last sleeping bishop and pin a Black knight to the queen. A stuck piece is like having one fewer enemy on the board.",
+   ok:{c3d5:"Jumping to d5 is a strong idea, and we'll do it soon! But first, wake up your last sleeping piece, the bishop on c1.",c1e3:"Good, the bishop wakes up! But on e3 it doesn't bother anyone. Can you find a square where it attacks the knight on f6?"},
+   replyText:"Black pushes a pawn to h6 and kicks your bishop! When a pawn kicks your piece, you have to decide: run away, or trade?"},
+  {m:'g5f6',san:'Bxf6',r:'d8f6',rsan:'Qxf6',glow:['f6'],idea:'Trade to win time',show:[],
+   goal:"Your bishop is under attack from the pawn on h6. Run away, or trade? Look at which Black piece your bishop is staring at. If you take it, Black has to recapture with the queen, and a queen out early is easy to chase!",
+   yes:"Swap! You traded your bishop for Black's knight. Now Black must take back with the queen, and once she's out, your pieces can chase her and win time.",
+   deeper:"Bishops and knights are worth about the same, three pawns each, so this trade is fair. But it's also clever. After Black recaptures with the queen, she becomes a target. Every time you attack her with a smaller piece, Black loses a move running away while you bring more pieces into the game.",
+   missed:"Your bishop is under attack! This turn was your chance to save it or swap it for the knight. If you leave it there, Black captures it for free.",
+   ok:{g5h4:"Stepping back and keeping the pin is a real move, and strong players do it! Today we try the sneaky trade instead, so Black's queen has to come out.",g5e3:"Running away is safe, but the bishop stops doing its job. Try the trade instead.",g5d2:"Running away is safe, but the bishop stops doing its job. Try the trade instead."},
+   replyText:"Black recaptures with the queen. Look, she's out in the open on f6. Now, can you chase her?"},
+  {m:'c3d5',san:'Nd5',r:'f6d8',rsan:'Qd8',glow:['d5'],idea:'Chase the queen',show:['d5f6','d5c7'],
+   goal:"Black's queen is out on f6. Can one of your knights jump into the center and attack her? A knight in the middle of the board is a monster!",
+   yes:"Monster knight! Your knight on d5 attacks the queen, and it also eyes the pawn on c7. Black has to move the queen again, which means you're winning time.",
+   deeper:"The d5 square is a perfect home for your knight. From there it attacks squares deep in Black's camp, like c7, e7, f6 and b6. Black would have to spend another pawn move just to kick it. Players call a square like that an outpost.",
+   missed:"This turn was your chance to chase Black's queen with a knight and jump into the center at the same time. Making the queen run means free moves for you.",
+   ok:{c3b5:"Good idea, attacking c7! But on d5 the knight also attacks the queen. Always hit the biggest target!"},
+   replyText:"The queen runs all the way home to d8. See? Black lost two moves, and you gained them."},
+  {m:'c2c3',san:'c3',r:'c8e6',rsan:'Be6',glow:['d4'],idea:'Prepare the pawn push',show:['c3d4','c3b4'],rshow:['~e6d5'],
+   goal:"Time to plan a big pawn push! You'd love to push your d-pawn forward to attack Black's bishop and center. But that square needs a helper first. Which small pawn can step up to guard d4?",
+   yes:"Smart planning! The pawn on c3 guards d4, so next turn your d-pawn can march forward safely. It also takes the b4 square away from Black's pieces.",
+   deeper:"Masters call this preparing a pawn break. A pawn break is a pawn push that attacks the enemy's pawns and opens lines. You don't push it straight away. First you add a helper, so the push can't simply be captured. Patience wins chess games!",
+   missed:"This turn was your chance to prepare a strong pawn push in the center. Without a helper, your center push can be captured.",
+   ok:{d3d4:"Brave! Pushing d4 is the plan, but it's even stronger with a helper pawn behind it. Add the helper first, then push.",a2a4:"Gaining space on the side is a real idea, but the center matters more. Get ready for a center push."},
+   replyText:"Black brings out the last bishop and challenges your knight on d5. Don't worry, your bishop on c4 and pawn on e4 protect it."},
+  {m:'d3d4',san:'d4',r:'c5b6',rsan:'Bb6',glow:['c5','e5'],idea:'Strike the center',show:['d4c5','d4e5'],
+   goal:"Final plan move: your helper is ready! Push a pawn into the center so that it attacks Black's bishop and Black's center pawn at the same time.",
+   yes:"A pawn fork! Your pawn on d4 attacks both the bishop on c5 and the pawn on e5. Your center is getting huge. What a plan!",
+   deeper:"Look at how your plan worked. You pinned and traded, chased the queen, prepared with c3, and then struck with d4. Each move set up the next one. That's the secret of good chess: don't just make moves, make plans.",
+   missed:"This turn was your chance to strike the center and attack two Black targets at once. Your helper pawn was ready, so the push was safe.",
+   replyText:"Black's bishop steps back to b6. Your center is strong, your pieces are active, and you're ready for the middlegame battle!"}
+]));
+LESSONS.italian.outro="Wonderful! You played the whole Italian Game, and then a clever plan after it. Your king is safe, your knight jumped to a monster square, and your center is huge.";
+LESSONS.italian.summary.push('Pin pieces to the queen','Prepare pawn pushes with a helper');
+
+LESSONS.ruy.steps.push(...plan([
+  {m:'c2c3',san:'c3',r:'d7d6',rsan:'d6',glow:['c2','d4'],idea:'Make a hideout',show:['c3d4'],rshow:['!c8g4'],
+   goal:"The opening is done, now let's plan! One day you'd like to push your d-pawn to d4, and your bishop might need a safe hideout later. Which small pawn move helps with both?",
+   yes:"Clever! The pawn on c3 gets ready to support d4. And it empties the c2 square, a secret hideout where your bishop can go if Black chases it.",
+   deeper:"Strong players think about escape routes before their pieces are attacked. Black has pawns on a6 and b5 that might chase your bishop again. Now it can always slip back to c2, where it still aims toward Black's king side.",
+   missed:"This turn was your chance to prepare your center push and make a safe hideout for your bishop, all with one tiny pawn move.",
+   ok:{d2d4:"Pushing d4 right now is a real idea! But Black has lots of pieces aiming at d4. Strong players first add a helper pawn.",h2h3:"That's a good move and it's coming soon! But first, prepare your center with a helper pawn.",d2d3:"Solid! But the big plan is to push your d-pawn two squares later. Prepare that with a helper pawn first."},
+   replyText:"Black protects e5 with a pawn on d6 and opens a road for the bishop on c8. Watch out, that bishop would love to jump to g4!"},
+  {m:'h2h3',san:'h3',r:'c6a5',rsan:'Na5',glow:['g4'],idea:'Stop the plan before it starts',show:['h3g4'],rshow:['!a5b3'],
+   goal:"Black's bishop on c8 wants to jump to g4 and pin your knight to your queen. Can you stop it with one little pawn step, before it even happens?",
+   yes:"Stopped! Your pawn on h3 guards g4, so Black's bishop can't land there. Taking away your opponent's best idea is a master's skill.",
+   deeper:"Here's my favourite trick, young one. Before you make your own move, ask yourself: what does my opponent want to do? Black wanted to pin your knight from g4. One small pawn move took that whole plan away. Thinking ahead like this is called prophylaxis. That's a big word for being sneaky ahead of time!",
+   missed:"Black's bishop was getting ready to pin your knight from g4. This turn was your chance to stop that plan before it started.",
+   ok:{d2d4:"Pushing d4 is the plan! But Black's bishop could come to g4 and pin the knight that guards d4. Stop that first.",d2d3:"A solid move, but Black's bishop can still jump to g4. Stop it first."},
+   replyText:"Black's knight jumps to a5 and attacks your bishop on b3! Good thing you made a hideout."},
+  {m:'b3c2',san:'Bc2',r:'c7c5',rsan:'c5',glow:['c2'],idea:'Use your hideout',show:['c2h7'],rshow:['~c5d4'],
+   goal:"Your bishop is attacked by the knight on a5! Remember the hideout you made a few moves ago? Use it!",
+   yes:"Into the hideout! Your bishop is safe on c2, and it's still aiming toward Black's king side. Your earlier pawn move paid off.",
+   deeper:"Look how planning ahead saved you. Two moves ago, c3 emptied this square. Now your bishop escapes without losing its power. On c2 it sits behind the e4 pawn, like an archer behind a wall, ready to shoot down the diagonal later.",
+   missed:"Your bishop was under attack! This turn was your chance to use the hideout you made earlier and keep your bishop safe.",
+   replyText:"Black pushes a pawn to c5 to fight for the d4 square. The center battle is heating up!"},
+  {m:'d2d4',san:'d4',r:'d8c7',rsan:'Qc7',glow:['d4','e5','c5'],idea:'Strike the center',show:['d4e5','d4c5'],rshow:['~c7e5'],
+   goal:"Everything is ready: your helper pawn, your safe bishop, and your rook on the e-file. Time for the big center push! Which pawn should march?",
+   yes:"Charge! Your pawn on d4 attacks e5 and c5, and it's supported by your c3 pawn and your knight. The plan you started many moves ago just came true!",
+   deeper:"This is the Ruy Lopez's main plan. You built up slowly with c3, h3 and the bishop retreat. Now d4 hits Black's center. If Black captures, your c3 pawn takes back and you get two big pawns in the middle. Slow preparation, then a strong strike!",
+   missed:"This turn was your chance to finally make the big center push you prepared for. All your helpers were ready!",
+   replyText:"Black's queen steps to c7 to protect e5 again. Black's whole army is busy defending now."},
+  {m:'b1d2',san:'Nbd2',r:'c8d7',rsan:'Bd7',glow:['d2'],idea:'Wake the last piece',show:['d2f1'],
+   goal:"Final plan move: one piece is still asleep in the corner, your knight on b1. Its usual square, c3, is taken by your own pawn. Where else can it wake up?",
+   yes:"Awake! The knight comes out to d2. Next it can hop to f1 and then g3, where it guards your king. Every piece is in the game now!",
+   deeper:"This knight is going on a journey: b1 to d2, then f1, then g3. It looks slow, but in closed positions like this one, there's time for long knight trips. And once it leaves d2, your bishop on c1 gets its road back too.",
+   missed:"This turn was your chance to wake up your very last sleeping piece. A sleeping piece is like a player sitting on the bench.",
+   wrong:{b1a3:G.rim},
+   replyText:"Black brings out the last bishop. Both armies are fully awake, and the real battle begins!"}
+]));
+LESSONS.ruy.outro="Wonderful! You played the whole Ruy Lopez and the master plan after it. You stopped Black's ideas, used your hideout, and struck the center.";
+LESSONS.ruy.summary.push('Stop your opponent’s plan early','Make hideouts before you need them');
+
+LESSONS.qg.steps.push(...plan([
+  {m:'a1c1',san:'Rc1',r:'c7c6',rsan:'c6',glow:['c4','c5','c6','c7'],idea:'Rooks on open files',show:[],
+   goal:"The opening is done, now let's plan! Your c-pawn left its file, and soon pawns may trade on c4 or d5. Which piece loves long open lines like that? Get it ready on the c-file!",
+   yes:"Rook ready! Your rook on c1 sits on the c-file. When the pawns in front of it trade off, that line opens and your rook will fire straight into Black's camp.",
+   deeper:"Rooks are like cannons. They need open lines to shoot. Smart players put their rooks on files that are about to open, before it happens. Here, the c-file is likely to open, because your pawn on c4 and Black's pawn on d5 are touching.",
+   missed:"This turn was your chance to put a rook where the action will be. When the c-file opens, the rook that's already there wins the race.",
+   ok:{f1d3:"Bringing out the bishop is a great move, and it's coming next! But first, let's get a rook ready for the c-file.",d1c2:"The queen on c2 is a real move! But today we get the rook to the c-file first."},
+   replyText:"Black adds a pawn to c6 to make d5 rock solid. Black is building a strong wall."},
+  {m:'f1d3',san:'Bd3',r:'d5c4',rsan:'dxc4',glow:['h7'],idea:'Aim at the king',show:['d3h7'],rshow:['!d5c4'],
+   goal:"One bishop is still sleeping on f1, and your king can't castle until it moves. Wake it up and aim it at Black's king side!",
+   yes:"The bishop is awake and aiming at h7, right next to Black's king. And now your king can castle soon!",
+   deeper:"A bishop on d3 points like an arrow toward h7. In many games, this bishop helps start an attack on the king. It also clears f1, so your king can castle. Two jobs again!",
+   missed:"This turn was your chance to wake up your last bishop and get your king ready to castle.",
+   ok:{f1e2:"Safe and solid! But on d3 the bishop aims at Black's king. Be brave!",c4d5:"Swapping pawns is a real idea, but first bring out your last bishop."},
+   replyText:"Black captures your pawn on c4! But look, your bishop is standing right there, ready to take it back."},
+  {m:'d3c4',san:'Bxc4',r:'f6d5',rsan:'Nd5',glow:['c4'],idea:'Win your pawn back',show:['c4e6'],rshow:['~d5c3','!e7g5'],
+   goal:"Black took your pawn on c4. Remember the gambit? Now you win it back! Which piece can capture on c4 and land on a great diagonal?",
+   yes:"Got it back! Your bishop takes on c4, so the pawns are even again. Black spent a move capturing, while you kept bringing out pieces. That's how the gambit works!",
+   deeper:"See how Black's capture helped you? Your bishop moved twice, but the second move was a capture, so you didn't lose any time. Now it sits on a lovely diagonal aiming at e6 and f7.",
+   missed:"Black just took your pawn! This turn was your chance to take it back right away. If you wait, Black might keep it.",
+   replyText:"Black's knight jumps to d5 and offers to trade pieces. And look out, Black's bishop on e7 can now see your bishop on g5!"},
+  {m:'g5e7',san:'Bxe7',r:'d8e7',rsan:'Qxe7',glow:['g5','e7'],idea:'Trade when attacked',show:[],
+   goal:"Careful! Black's knight moved, so now Black's bishop on e7 is looking straight at your bishop on g5. Your bishop is attacked. Save it, or trade?",
+   yes:"Swap! You traded bishops instead of running away. Black has to take back, and your king can castle next.",
+   deeper:"When two pieces of the same value look at each other, the player to move decides: trade or not. Here, running away with your bishop would waste a move. Trading keeps things simple, and you'll castle right after.",
+   missed:"Your bishop on g5 was attacked by Black's bishop! This turn was your chance to trade it. If you ignore it, Black captures it for free.",
+   ok:{g5h4:"Running away keeps your bishop, but it takes time. Here, a simple trade is better.",g5f4:"Running away keeps your bishop, but it takes time. Here, a simple trade is better."},
+   replyText:"Black recaptures with the queen. Now it's your king's turn to get safe."},
+  {m:'e1g1',san:'O-O',r:'d5f6',rsan:'N5f6',glow:['g1'],idea:'Castle and finish the army',show:[],
+   goal:"Final plan move: your king is still standing in the middle. The road to the corner is clear now. What's the special move?",
+   yes:"Castled! Your king is safe in the corner, and your rook on f1 is ready to join the fight. Your army is complete!",
+   deeper:"Look at your army: a knight in the center, a bishop on a great diagonal, a rook on the c-file and your king safe in the corner. Once your queen moves, your two rooks will connect and protect each other, like two friends holding hands.",
+   missed:"This turn was your chance to tuck your king safely away. A king in the middle gets in trouble when lines open.",
+   ok:{c3d5:"Trading knights is fine, but first, safety! Castle your king.",c3e4:"Moving the knight is a real idea, but your king still needs to castle."},
+   replyText:"Black's knight goes back to f6 to guard the king. Both sides are ready for the middlegame!"}
+]));
+LESSONS.qg.outro="Wonderful! You played the Queen's Gambit and a smart plan after it. You won your pawn back, traded at the right moment, and castled.";
+LESSONS.qg.summary.push('Put rooks on files that will open','Trade when it saves time');
+
+/* ---------------- Four new lessons ---------------- */
+const E4X={show:['e4d5','e4f5','f1a6'],missed:"This turn was your chance to put a pawn in the middle of the board and open doors for your queen and bishop. Without it, Black can grab the center first."};
+const NF3X={show:['f3e5'],rshow:['~c6e5'],missed:"This turn was your chance to wake up a knight and attack Black's pawn at the same time. A threat forces Black to answer you, instead of doing whatever Black wants."};
+
+LESSONS.london={name:'London System',tag:'Build a strong house, brick by brick',color:'w',
+  intro:"Ah, the London System! It's like building a cosy house, brick by brick. You'll set up your pieces in the same strong pattern almost every game. Let's build it together!",
+  outro:"Splendid! You built the whole London System, and then made a smart attacking plan. Brick by brick, just like a master builder.",
+  finalDeeper:"The best thing about the London System is that you can play it against almost anything. Bishop to f4, pawns on c3, d4 and e3, knights on f3 and d2, bishop on d3, and castle. Then look for a strong square for your knight, like e5.",
+  summary:['Start with the queen’s pawn','Bishop out before e3','Build a pawn triangle','Knights to f3 and d2','Keep your best bishop','Jump a knight to a strong square','Count attackers and defenders'],
+  steps:[
+    {m:'d2d4',san:'d4',r:'d7d5',rsan:'d5',glow:['d4','e4','d5','e5'],idea:'Grab the center',show:['d4e5','d4c5'],
+     goal:"Mission one: grab the center! Think about the pawn in front of your queen. How far can it go to stand right in the middle?",
+     yes:"Great start! Your pawn on d4 stands in the center, and your queen already protects it. That's the first brick of your house.",
+     deeper:"In the London System, this pawn on d4 is the foundation. Everything else gets built around it. Because the queen guards it, it's very hard for Black to attack.",
+     missed:"This turn was your chance to put a strong pawn in the center, the first brick of the London System.",
+     ok:{e2e4:"Great move, but that starts a different family of openings. For the London, think about the queen's pawn.",g1f3:"A knight first is fine! But today we start with the queen's pawn."},
+     replyText:"Black blocks you with a pawn on d5. The two pawns stare at each other."},
+    {m:'c1f4',san:'Bf4',r:'g8f6',rsan:'Nf6',glow:['f4'],idea:'Bishop out before e3',show:['f4c7'],
+     goal:"Mission two: here's the London secret! Before your e-pawn moves, bring out the bishop that it would trap. Which bishop is that, and where can it go to be active?",
+     yes:"That's the London move! Your bishop zooms out to f4 before your e-pawn closes the door. Now it controls e5 and looks deep into Black's camp, all the way to c7.",
+     deeper:"If you push e3 first, your bishop on c1 gets trapped behind its own pawns. That's why London players bring it out right away. On f4 it's active, it guards e5, and it's out of the way so the e-pawn can move next.",
+     missed:"This turn was your chance to bring your bishop out before your own pawns trap it. Once the e-pawn moves, that bishop's door is closed.",
+     ok:{g1f3:"A knight is fine, but the London secret is to get the bishop out first, before your e-pawn traps it.",c2c4:"That's the Queen's Gambit, which has its own lesson! For the London, bring out a bishop first.",c1g5:"An active square! But in the London, the bishop guards e5 from f4 and stays safe there. Try again."},
+     wrong:{e2e3:"Careful! If you push e3 now, your bishop on c1 gets trapped behind your pawns. Get the bishop out first!"},
+     replyText:"Black brings out a knight. It's eyeing the center squares e4 and d5."},
+    {m:'e2e3',san:'e3',r:'e7e6',rsan:'e6',glow:['d4'],idea:'Support the center',show:['e3d4','f1a6'],
+     goal:"Mission three: your bishop is safely outside, so now the door can close. Push a pawn just one square to support d4 and open a road for your other bishop.",
+     yes:"Brick number three! The pawn on e3 supports d4, and your bishop on f1 can come out now. Your house is getting sturdy.",
+     deeper:"Pawns on e3 and d4 hold hands, so if anything captures on d4, the e-pawn takes back. Soon you'll add c3 too, making a pawn triangle. Triangles are the strongest shape, just ask any builder!",
+     missed:"This turn was your chance to support your center pawn and open a road for your other bishop.",
+     ok:{g1f3:"A good developing move, and it's coming next! First, support d4 with a pawn."},
+     wrong:{e2e4:"Pushing e4 looks brave, but Black's pawn on d5 and knight on f6 both attack it. One step is safer."},
+     replyText:"Black supports d5 and opens a road for Black's bishop too."},
+    {m:'g1f3',san:'Nf3',r:'c7c5',rsan:'c5',glow:['e5','d4'],idea:'Knights first',show:['f3e5','f3d4'],rshow:['!c5d4'],
+     goal:"Mission four: a knight is still asleep on g1. Where can it jump to guard your center and help your king castle later?",
+     yes:"Knight awake! On f3 it guards d4 and e5, and it protects your king side. Another brick in place.",
+     deeper:"The knight on f3 is a great defender. It guards your king, protects the center, and can jump to e5 later. That's a favourite trick in the London System.",
+     missed:"This turn was your chance to wake up a knight and protect your center.",
+     replyText:"Black pushes a pawn to c5 and attacks your pawn on d4! Black is challenging your center."},
+    {m:'c2c3',san:'c3',r:'b8c6',rsan:'Nc6',glow:['d4'],idea:'Build a pawn triangle',show:['c3d4','e3d4'],rshow:['!c6d4'],
+     goal:"Mission five: Black's pawn on c5 is attacking d4. Which little pawn can step up to guard d4 and finish your pawn triangle?",
+     yes:"Triangle complete! Your pawns on c3, d4 and e3 make a super strong shape. If Black takes on d4, a pawn takes back.",
+     deeper:"Look at the triangle: c3, d4 and e3. The d4 pawn is protected twice by pawns, so Black can attack it again and again without winning it. This solid shape is the heart of the London System.",
+     missed:"Black's pawn was attacking d4! This turn was your chance to protect it with a pawn and finish your triangle.",
+     ok:{d4c5:"Taking the pawn is possible, but then your center pawn is gone. In the London, we keep the center solid.",b1d2:"A good developing move! But Black is attacking d4. Protect it with a pawn first."},
+     replyText:"Black brings out another knight to attack d4 again. But your triangle holds strong!"},
+    {m:'b1d2',san:'Nbd2',r:'f8d6',rsan:'Bd6',glow:['d2'],idea:'Knights to f3 and d2',show:[],rshow:['!d6f4'],
+     goal:"Mission six: one knight is still sleeping on b1. Its favourite square, c3, is taken by your pawn. Where else can it wake up?",
+     yes:"All knights awake! The knight on d2 guards e4 and can jump to good squares later. Your London house is fully built!",
+     deeper:"On d2 the knight is safe from attacks, it guards the e4 square, and it can go to f3 if your other knight moves away. In the London, it's the perfect square.",
+     missed:"This turn was your chance to wake up your last sleeping knight.",
+     replyText:"Black puts a bishop on d6 to challenge your bishop on f4! Two bishops staring at each other. Who will blink first?"},
+    {plan:true,m:'f4g3',san:'Bg3',r:'e8g8',rsan:'O-O',glow:['g3'],idea:'Keep your best bishop',show:['g3d6'],
+     goal:"The house is built, now let's plan! Black's bishop on d6 is attacking your bishop on f4. Your London bishop is your best piece. Can you keep it alive, without trading?",
+     yes:"Smart retreat! On g3 your bishop is still on the same road, staring at Black's bishop, and two pawns protect it. If Black trades now, your h-pawn takes back and opens a line for your rook.",
+     deeper:"Your dark-squared bishop is precious in the London System, because your pawns stand on light squares. Keeping it means you control dark squares like e5. On g3 it's protected by the pawns on f2 and h2, safe and sound.",
+     missed:"Your bishop was being challenged! This turn was your chance to keep it safe on the same diagonal instead of letting Black decide.",
+     ok:{f4d6:"Trading is allowed, and some players do it! But the London bishop is precious. Try keeping it on the same diagonal."},
+     replyText:"Black castles. Now it's your turn to finish setting up your king."},
+    {plan:true,m:'f1d3',san:'Bd3',r:'b7b6',rsan:'b6',glow:['h7'],idea:'Aim at the king',show:['d3h7'],
+     goal:"Black's king just castled to the king side. Your last bishop is still on f1. Can you aim it at Black's king?",
+     yes:"Bullseye! Your bishop on d3 aims straight at h7, the pawn in front of Black's king. And now your own king is ready to castle.",
+     deeper:"In the London System, the bishops on d3 and g3 work as a team. One aims at h7, the other controls e5. Together they make Black's king nervous.",
+     missed:"This turn was your chance to aim your last bishop at Black's king and get ready to castle.",
+     ok:{f1e2:"Safe, but a bit shy. On d3 your bishop aims at Black's king!",f1b5:"Pinning the knight is a real idea! But in the London, the bishop loves d3, aiming at Black's king."},
+     replyText:"Black pushes a pawn to b6 to make room for the bishop on c8."},
+    {plan:true,m:'e1g1',san:'O-O',r:'c8b7',rsan:'Bb7',glow:['g1'],idea:'Castle early',show:[],
+     goal:"Your king is still in the middle, and everything between it and the rook is cleared. What's the special move?",
+     yes:"Castled! Your king is safe behind its pawns, and your rook is ready. Your London house now has a strong roof!",
+     deeper:"Now you're ready to attack. With your king safe, you can move pieces toward Black's king without worrying about your own.",
+     missed:"This turn was your chance to make your king safe before the action starts.",
+     replyText:"Black's bishop goes to b7, aiming down the long diagonal toward your king side."},
+    {plan:true,m:'f3e5',san:'Ne5',r:'d8c7',rsan:'Qc7',glow:['e5'],idea:'Knight on an outpost',show:['e5f7','e5c6'],rshow:['~c7e5'],
+     goal:"Here's a famous London trick! Your knight on f3 can jump to a strong square in the center that your pawn and your bishop on g3 already guard. Where is it?",
+     yes:"What a jump! Your knight on e5 is a monster in the middle. It attacks c6 and f7, and it's guarded by your pawn and your bishop.",
+     deeper:"The e5 square is called an outpost. Your pawn on d4 and bishop on g3 both protect it. Many London players win games with this knight, because it's so hard to kick out.",
+     missed:"This turn was your chance to jump your knight to the strongest square in the center.",
+     ok:{d1e2:"Getting your queen ready is a fine idea, but first, jump a knight into the center!"},
+     replyText:"Black's queen steps to c7. Now Black has three pieces attacking your knight on e5. Count your defenders!"},
+    {plan:true,m:'f2f4',san:'f4',r:'c6e7',rsan:'Ne7',glow:['e5'],idea:'Count attackers and defenders',show:['f4e5','d4e5'],
+     goal:"Final plan move: Black is ganging up on your knight with three pieces, the knight, the bishop and the queen. You have only two defenders. Can a pawn step up and add one more guard?",
+     yes:"Fortress! Your pawn on f4 joins d4 to protect your knight like a wall. Now e5 belongs to you, and you're ready to attack Black's king. That's the London System!",
+     deeper:"Always count attackers and defenders. Black had three attackers on e5, and you had two defenders. With f4, you have three, so your knight is safe. And later, your f-pawn can march forward to attack Black's king.",
+     missed:"Black was ganging up on your knight with three pieces! This turn was your chance to add another defender so your knight stays strong.",
+     ok:{d1f3:"The queen can help, but she's too valuable to be a guard. A pawn is the best bodyguard!"},
+     wrong:{e5c6:"Trading your star knight gives up your best square. Protect it instead!"},
+     replyText:"Black's knight steps back to e7, trying to defend the king. Your pieces are pointing right at it. Wonderful!"}
+  ]};
+
+LESSONS.scotch={name:'Scotch Game',tag:'Strike the center right away',color:'w',
+  intro:"Welcome to the Scotch Game! In this opening, you don't wait around. You strike the center early and open lines for your pieces. Bold and brave, just the way I like it!",
+  outro:"Splendid! You played the Scotch Game and an attacking plan after it. You struck the center, broke Black's pin, and ganged up on a pinned knight.",
+  finalDeeper:"Here's the big picture. You opened the center early with d4, recaptured toward the middle, and traded to mess up Black's pawns. Then you castled to break the pin and built pressure on f6. Open centers reward fast development, and you were faster!",
+  summary:['Grab the center','Knights first','Strike the center early','Recapture toward the center','Messy pawns are weak','Castle to break a pin','Attack a pinned piece again'],
+  steps:[
+    Object.assign(stepE4('the Scotch Game'),E4X),
+    Object.assign(stepNf3("Bishops are coming soon, but knights first! The knight is slower, so it needs to come out early, and right now it can make a threat on e5."),NF3X),
+    {m:'d2d4',san:'d4',r:'e5d4',rsan:'exd4',glow:['d4','e5'],idea:'Strike the center early',show:['d4e5'],
+     goal:"Mission three: here's the Scotch idea! Instead of bringing out a bishop, strike the center right now. Which pawn can attack Black's pawn on e5?",
+     yes:"Strike! Your pawn on d4 attacks e5 and opens lines for your queen and bishop. If Black captures, you'll capture back and own the center.",
+     deeper:"Some openings build slowly. The Scotch hits right away. By pushing d4, you make Black decide immediately. If Black takes, your knight recaptures and lands in the middle of the board.",
+     missed:"This turn was your chance to strike Black's center pawn right away and open lines for your pieces.",
+     ok:{f1c4:"That's the Italian Game, and it has its own lesson! For the Scotch, strike the center with a pawn.",f1b5:"That's the Ruy Lopez, and it has its own lesson! For the Scotch, strike the center with a pawn.",b1c3:"A good developing move! But the Scotch strikes the center with a pawn right now."},
+     wrong:{f3e5:TRAP_E5},
+     replyText:"Black captures your pawn on d4! Don't worry, you can take it back."},
+    {m:'f3d4',san:'Nxd4',r:'g8f6',rsan:'Nf6',glow:['d4'],idea:'Recapture toward the center',show:['d4c6','d4e6','d4f5'],rshow:['!f6e4'],
+     goal:"Mission four: Black took your pawn. Take it back! Which piece can capture on d4 and stand proudly in the center?",
+     yes:"Back in the center! Your knight on d4 is a powerhouse, reaching squares like c6, e6, f5 and b5. Pieces in the middle control the most squares.",
+     deeper:"A knight in the corner can reach only two squares. A knight in the center can reach eight! That's why we recapture with the knight here. Your queen also protects it, so it's safe.",
+     missed:"Black just took your pawn! This turn was your chance to take it back and put a knight right in the center.",
+     ok:{d1d4:"Taking with the queen is a real move! But Black's knight on c6 will chase her right away. A knight recapture is smoother.",c2c3:"Offering another pawn is a real gambit! Exciting, but today we simply take the pawn back."},
+     replyText:"Black brings out a knight, and it attacks your pawn on e4! Time to protect it."},
+    {m:'b1c3',san:'Nc3',r:'f8b4',rsan:'Bb4',glow:['e4'],idea:'Defend and develop together',show:['c3e4','c3d5'],rshow:['!b4e1'],
+     goal:"Mission five: Black's knight attacks your pawn on e4. Can you wake up a sleeping piece and protect e4 at the same time?",
+     yes:"Two jobs at once! Your knight on c3 protects e4 and comes into the game. That's what I call an efficient move.",
+     deeper:"Whenever you need to defend, look for a move that also develops a new piece. Defending with a sleeping piece wakes it up, so you don't lose any time.",
+     missed:"Your pawn on e4 was under attack! This turn was your chance to protect it and wake up a piece, both at once.",
+     ok:{f1d3:"The bishop protects e4, good idea! But the knight on b1 is still asleep, and knights come first."},
+     wrong:{d1d3:QUEEN_GUARD,d1e2:QUEEN_GUARD},
+     replyText:"Black's bishop pins your knight to your king! If your knight moves, your king would be in check. Black is getting tricky."},
+    {m:'d4c6',san:'Nxc6',r:'b7c6',rsan:'bxc6',glow:['c6'],idea:'Messy pawns are weak',show:[],
+     goal:"Mission six: your knight on d4 and Black's knight on c6 are staring at each other. What happens if you swap knights? Black would have to take back with a pawn, and Black's pawns would get messy!",
+     yes:"Swap! Black had to recapture with a pawn, and now Black's pawns are split into little islands. Pawn islands are harder to protect.",
+     deeper:"Pawns are strongest when they stand side by side. After the trade, Black's pawns on the queen side are scattered. Later in the game, lonely pawns can become targets.",
+     missed:"This turn was your chance to trade knights and mess up Black's pawns.",
+     ok:{f1d3:"Developing the bishop is a great idea, and it's coming next! But first, trade knights to mess up Black's pawns.",c1g5:"Pinning the knight is a strong idea! But first, trade knights to mess up Black's pawns."},
+     replyText:"Black recaptures with a pawn. Look at Black's pawns on the queen side, a bit scattered!"},
+    {plan:true,m:'f1d3',san:'Bd3',r:'d7d5',rsan:'d5',glow:['e4'],idea:'Protect and develop',show:['d3e4','d3h7'],rshow:['!d5e4'],
+     goal:"The opening is done, now let's plan! Your king still needs to castle, and your bishop on f1 is in the way. Bring it out to a square where it also protects e4.",
+     yes:"Perfect! Your bishop on d3 protects e4 and clears the path for castling. It's also aiming toward Black's king side.",
+     deeper:"With the bishop on d3, your pawn on e4 is guarded twice, by the knight and the bishop. And next move, your king can castle to safety.",
+     missed:"This turn was your chance to bring out your bishop, protect e4, and get ready to castle.",
+     ok:{f1e2:"Safe and fine, but on d3 your bishop protects e4 and aims at Black's king."},
+     replyText:"Black pushes a pawn to d5 and attacks your pawn on e4 again! The center is getting exciting."},
+    {plan:true,m:'e4d5',san:'exd5',r:'c6d5',rsan:'cxd5',glow:['d5'],idea:'Capture first',show:[],
+     goal:"Black's pawn on d5 is attacking your pawn on e4. Instead of waiting, can your pawn capture first?",
+     yes:"Capture! You traded your e-pawn for Black's d-pawn. Now the center is opening up, and open centers are great when your pieces are ready.",
+     deeper:"When pawns touch, you can often choose to capture first. This opens lines in the center. Your pieces are developed and your king is about to castle, so open lines help you more than Black.",
+     missed:"This turn was your chance to capture in the center before Black captured you.",
+     ok:{e1g1:"Castling is good, but Black's pawn on d5 is attacking e4. Deal with the center first!",e4e5:"Pushing past is a real idea, but then Black's knight jumps to e4 into the center. Capturing is cleaner."},
+     replyText:"Black recaptures with a pawn. Now there's a Black pawn on d5 in the middle."},
+    {plan:true,m:'e1g1',san:'O-O',r:'e8g8',rsan:'O-O',glow:['g1'],idea:'Castle to break a pin',show:[],
+     goal:"The center is open, and that's dangerous for a king in the middle! Remember, Black's bishop is pinning your knight to your king. What's the special move that solves everything?",
+     yes:"Castled! Your king is safe in the corner, and look, your knight on c3 isn't pinned anymore. One move, two problems solved!",
+     deeper:"The pin only worked because your king was behind the knight. Once the king castled away, the knight is free. Getting out of a pin can be as easy as moving the piece behind it.",
+     missed:"This turn was your chance to hide your king and break the pin on your knight in one move.",
+     replyText:"Black castles too. Both kings are safe."},
+    {plan:true,m:'c1g5',san:'Bg5',r:'c7c6',rsan:'c6',glow:['f6','d8'],idea:'Pin a piece',show:['g5d8'],
+     goal:"Your last bishop is still asleep on c1. Can you wake it up and pin Black's knight on f6 to Black's queen?",
+     yes:"Pinned! Your bishop attacks the knight on f6, and Black's queen is hiding behind it. That knight is stuck.",
+     deeper:"A pinned knight can't move without letting the queen get captured. Now you can pile up more attackers on f6, because it's hard for Black to defend a stuck piece.",
+     missed:"This turn was your chance to wake up your last bishop and pin a Black knight to the queen.",
+     ok:{c1f4:"An active square! But on g5 the bishop pins a knight, which is even better.",c1e3:"A safe square, but on g5 the bishop pins a knight."},
+     replyText:"Black adds a pawn to c6 to make d5 stronger."},
+    {plan:true,m:'d1f3',san:'Qf3',r:'b4e7',rsan:'Be7',glow:['f6'],idea:'Attack a pinned piece again',show:['f3f6','g5f6'],
+     goal:"Final plan move! Black's knight on f6 is pinned and stuck. Which of your pieces can join the attack on that knight?",
+     yes:"Double trouble! Your queen and bishop both attack the pinned knight on f6. Black has to defend it, and your pieces are pointing right at Black's king.",
+     deeper:"When a piece is pinned, attack it again! It can't run away, so your opponent must find more defenders. That kind of pressure is how attacks are born.",
+     missed:"This turn was your chance to gang up on Black's pinned knight. A stuck piece is the best target.",
+     ok:{f1e1:"A rook on the e-file is a good idea! But first, pile up on that pinned knight."},
+     replyText:"Black's bishop rushes back to e7 to block the pin. You've got Black on the run!"}
+  ]};
+
+LESSONS.sicilian={name:'Sicilian Defense',tag:'Fight back from the side',color:'b',
+  first:'e2e4',firstSan:'e4',firstText:"White starts with the king's pawn to e4 and grabs the center. Now it's your turn, and you are playing Black!",
+  intro:"Welcome to the Sicilian Defense! This time you play Black. White moves first, but you won't copy. You'll fight for the center from the side, like a clever general. Ready, my young friend?",
+  outro:"Magnificent! You played the Sicilian Dragon as Black and finished with a real plan. Your dragon is ready to breathe fire!",
+  finalDeeper:"Here's the big picture. As Black, you didn't copy White. You fought for d4 with a side pawn, traded it for White's center pawn, and built a dragon on the long diagonal with your bishop on g7. Your rooks are ready for the open files. That's how Black fights back!",
+  summary:['Fight for the center from the side','Trade a side pawn for a center pawn','Knights out with a threat','Build a dragon: fianchetto','Castle behind your bishop','Rooks to the open files'],
+  steps:[
+    {m:'c7c5',san:'c5',r:'g1f3',rsan:'Nf3',glow:['d4'],idea:'Fight from the side',show:['c5d4'],
+     goal:"Mission one: White's pawn grabbed the center. Instead of copying, can you push a side pawn two squares so it guards the center square d4?",
+     yes:"The Sicilian! Your pawn on c5 guards d4, so White can't easily build a big center. And the game is unbalanced now, which means lots of chances to win!",
+     deeper:"Copying White with e5 is fine, but the Sicilian is sneaky. Your c-pawn fights for d4 from the side. Later, if White pushes d4, you can trade your side pawn for White's center pawn. That's a great deal for Black.",
+     missed:"This turn was your chance to fight for the center from the side and make the game exciting.",
+     ok:{e7e5:"Copying White with e5 is a great move! It starts openings like the Italian Game. But for the Sicilian, use a side pawn.",e7e6:"That's the French Defense, a real opening! For the Sicilian, push a side pawn two squares.",c7c6:"That's the Caro-Kann, and it has its own lesson! For the Sicilian, push that pawn two squares."},
+     replyText:"White brings out a knight. It's getting ready to push d4."},
+    {m:'d7d6',san:'d6',r:'d2d4',rsan:'d4',glow:['e5'],idea:'Open a road for the bishop',show:['d6e5','c8h3'],
+     goal:"Mission two: White's knight would love to jump to e5 later. Can you push a center pawn one square to guard e5 and open a road for your bishop on c8?",
+     yes:"Nice! Your pawn on d6 guards e5, so White's knight can't jump there, and your bishop on c8 has an open road now.",
+     deeper:"A pawn on d6 is small but mighty. It controls e5 and c5, and it frees your light-squared bishop. It also means your knight can come to f6 later without being kicked by a pawn on e5.",
+     missed:"This turn was your chance to guard e5 and open a road for your bishop with a single pawn step.",
+     ok:{b8c6:"A knight move is great, and very popular! But today we learn the Dragon, which starts with a pawn on d6.",e7e6:"That's a real Sicilian too! But today we learn the Dragon, which starts with a pawn on d6.",g7g6:"The dragon move! It's coming soon. But first, guard e5 with a pawn."},
+     replyText:"White strikes the center with d4! Now your c5 pawn and White's d4 pawn are touching."},
+    {m:'c5d4',san:'cxd4',r:'f3d4',rsan:'Nxd4',glow:['d4'],idea:'Side pawn for center pawn',show:[],
+     goal:"Mission three: here's the Sicilian trade I told you about! One of your side pawns can capture one of White's center pawns. Find it!",
+     yes:"Great trade! You gave a side pawn and took White's center pawn. Now you have two center pawns, and White has only one.",
+     deeper:"Center pawns are more valuable than side pawns because they control the middle. After this trade, you have pawns on d6 and e7 in the center, while White only has e4. That's an advantage that lasts the whole game.",
+     missed:"This turn was your chance to trade your side pawn for White's center pawn. That's the whole point of the Sicilian!",
+     replyText:"White recaptures with the knight. It sits in the middle, looking strong."},
+    {m:'g8f6',san:'Nf6',r:'b1c3',rsan:'Nc3',glow:['e4'],idea:'Knights out with a threat',show:['f6e4'],rshow:['~c3e4'],
+     goal:"Mission four: wake up a knight! Can you bring one out so it attacks White's pawn on e4?",
+     yes:"Knight out with a threat! Your knight on f6 attacks e4, so White has to spend a move protecting it.",
+     deeper:"Developing with a threat is like getting a free move. White must answer your threat instead of making a plan. And the knight on f6 also protects your king side, for when you castle.",
+     missed:"This turn was your chance to wake up a knight and attack White's pawn on e4 at the same time.",
+     ok:{b8c6:"A good developing move! But the knight on g8 can attack e4 right now. Make a threat!"},
+     replyText:"White protects e4 by bringing out a knight to c3."},
+    {m:'g7g6',san:'g6',r:'f1e2',rsan:'Be2',glow:['g7'],idea:'Make a nest for the bishop',show:['h8a1'],
+     goal:"Mission five: here comes the Dragon! Your bishop on f8 would love to sit on the long diagonal and breathe fire across the board. Which pawn should step aside to make it a cosy nest?",
+     yes:"The Dragon is born! Your pawn on g6 makes a nest on g7 for your bishop. From there it will aim across the whole board along the long diagonal.",
+     deeper:"Putting a bishop on g7 is called a fianchetto. It's an Italian word that means little side. The bishop sits safely next to the king and shoots down the longest diagonal on the board, from h8 to a1. Some people think Black's pawns look like a dragon, and that's how it got its name!",
+     missed:"This turn was your chance to make a nest for your bishop on the long diagonal. That's the Dragon's secret weapon.",
+     ok:{e7e6:"Solid, that's another Sicilian! But today we build the Dragon. Make a nest for your bishop on the long diagonal.",b8c6:"A good developing move! But first, let's build the Dragon's nest."},
+     replyText:"White brings out a bishop and gets ready to castle."},
+    {m:'f8g7',san:'Bg7',r:'c1e3',rsan:'Be3',glow:['g7'],idea:'Fianchetto',show:['g7d4'],
+     goal:"Mission six: the nest is ready! Bring your bishop into it.",
+     yes:"Dragon power! Your bishop on g7 looks down the long diagonal toward d4. Right now your own knight is in the way, but when it moves, whoosh, fire!",
+     deeper:"A fianchettoed bishop is patient. It sits safely and waits. When your knight on f6 moves away, the bishop suddenly attacks d4 and everything behind it. That's called a discovered attack, and it's one of the Dragon's favourite tricks.",
+     missed:"This turn was your chance to put your bishop in its nest on the long diagonal.",
+     replyText:"White brings out the other bishop to e3, guarding d4 from your dragon."},
+    {plan:true,m:'b8c6',san:'Nc6',r:'e1g1',rsan:'O-O',glow:['d4'],idea:'Pile up on the center',show:['c6d4'],
+     goal:"The opening is done, now let's plan! White's knight on d4 is a strong piece. Your last knight is still sleeping on b8. Can you wake it up and attack d4?",
+     yes:"All knights out! Your knight on c6 attacks d4. Together with your dragon bishop, you're putting pressure on White's center.",
+     deeper:"Count the attackers on d4: your knight on c6, and your bishop on g7 hiding behind the knight on f6. White has to keep guarding d4, and that keeps White's pieces tied up.",
+     missed:"This turn was your chance to wake up your last knight and attack White's strong knight on d4.",
+     ok:{e8g8:"Castling is great, and it's coming next! But first, wake up your last knight."},
+     replyText:"White castles to safety."},
+    {plan:true,m:'e8g8',san:'O-O',r:'d4b3',rsan:'Nb3',glow:['g8'],idea:'Castle behind your bishop',show:[],
+     goal:"Your king is still in the middle, and the squares between your king and rook are empty. What's the special move?",
+     yes:"Castled! Your king is tucked behind the dragon, protected by your bishop on g7 and the pawns on f7, g6 and h7. A very cosy home.",
+     deeper:"In the Dragon, the bishop on g7 is part of the king's shield. Never trade it away without a good reason! It guards the dark squares around your king.",
+     missed:"This turn was your chance to tuck your king safely behind the dragon.",
+     replyText:"White's knight steps back to b3, away from your pressure."},
+    {plan:true,m:'c8e6',san:'Be6',r:'f2f4',rsan:'f4',glow:['c4','d5'],idea:'Wake every piece',show:['e6b3'],rshow:['!f4f5'],
+     goal:"Your last bishop is still at home on c8. Wake it up on a square where it watches the center and the queen side.",
+     yes:"Bishop awake! On e6 it eyes c4 and the knight on b3. Now all your knights and bishops are in the game.",
+     deeper:"Your bishop on e6 also helps control d5, the key square for Black in the Sicilian. If you can push your d-pawn to d5 one day, your pieces will spring to life.",
+     missed:"This turn was your chance to wake up your last sleeping bishop.",
+     ok:{c8d7:"Good, the bishop wakes up! But on e6 it's more active and watches d5 and c4.",c8g4:"Attacking the bishop is a real idea! But on e6 your bishop helps control d5, the key square."},
+     replyText:"White pushes a pawn to f4, getting ready to push again and attack your bishop on e6!"},
+    {plan:true,m:'d8c8',san:'Qc8',r:'h2h3',rsan:'h3',glow:['c8'],idea:'Connect your rooks',show:['c8e6'],
+     goal:"Your queen is still at home, standing between your rooks. Can you step her one square so your rooks can see each other, and she protects your bishop on e6?",
+     yes:"Rooks connected! Your queen on c8 protects your bishop and lets your rooks see each other across the back row.",
+     deeper:"Connected rooks protect each other and can slide to whichever file opens up. Your queen on c8 also eyes the c-file, which is half open in the Sicilian. That's a favourite highway for Black's pieces.",
+     missed:"This turn was your chance to connect your rooks and protect your bishop.",
+     ok:{d8d7:"The queen on d7 also connects your rooks! But on c8 she protects your bishop from far away and eyes the c-file."},
+     replyText:"White pushes h3 to stop your pieces from landing on g4."},
+    {plan:true,m:'f8d8',san:'Rd8',r:null,glow:['d8','d5'],idea:'Rooks to the open files',show:[],
+     goal:"Final plan move! One rook is still in the corner behind your king. Bring it toward the middle of the board, where it supports your center pawn on d6.",
+     yes:"Rook to d8! Your rook supports the d-pawn, ready to push to d5 one day. Every piece is awake. The Dragon is ready to breathe fire!",
+     deeper:"Black's dream in the Sicilian is the pawn push d5, which opens the center. Your rook on d8, bishop on e6 and knight on f6 all help that push. When the moment comes, the center will burst open and your pieces will fly!",
+     missed:"This turn was your chance to bring your rook to the center, where the action will be.",
+     ok:{f8e8:"Rook to e8 is a real move, but on d8 it supports your d-pawn, and that's the Dragon's plan."}}
+  ]};
+
+LESSONS.caro={name:'Caro-Kann Defense',tag:'A rock-solid wall',color:'b',
+  first:'e2e4',firstSan:'e4',firstText:"White starts with the king's pawn to e4. Now it's your turn, and you are playing Black!",
+  intro:"Welcome to the Caro-Kann Defense! You play Black again. This defense is like a strong castle wall: solid, patient, and very hard to break. It's one of my favourites! Ready?",
+  outro:"Splendid! You played the Caro-Kann as Black and built a rock-solid position. White will have a very hard time breaking your wall!",
+  finalDeeper:"Here's the big picture. You prepared d5 with c6, then challenged White's center. Your light bishop came out before e6 could lock it in, and h6 gave it an escape square. Then you traded it for White's attacking bishop and built a solid wall. Patient and strong!",
+  summary:['Prepare before you push','Challenge the center','Bishop out before e6','Make escape squares in time','Trade off attackers','Build a solid wall'],
+  steps:[
+    {m:'c7c6',san:'c6',r:'d2d4',rsan:'d4',glow:['d5'],idea:'Prepare before you push',show:['c6d5'],
+     goal:"Mission one: White grabbed the center. You'd like to push a pawn to d5 to fight back, but White's e4 pawn would capture it. Which small pawn step makes d5 safe first?",
+     yes:"That's the Caro-Kann! Your pawn on c6 guards d5, so next move your d-pawn can march there safely. Preparation first!",
+     deeper:"If you push d5 right away, White captures and your queen has to recapture, then gets chased. With c6 ready, you can recapture with a pawn instead. And c6 doesn't block your light-squared bishop either. Very clever!",
+     missed:"This turn was your chance to prepare a safe center push with one small pawn step.",
+     ok:{e7e5:"Copying is a great move and starts many openings! But for the Caro-Kann, prepare a center push first.",c7c5:"That's the Sicilian Defense, with its own lesson! For the Caro-Kann, that pawn only needs one step.",d7d5:"That's the Scandinavian Defense, a real opening! But White captures and your queen gets chased. Prepare first, Caro-Kann style.",e7e6:"That's the French Defense, very similar! But it locks in your light bishop. The Caro-Kann keeps that bishop free."},
+     replyText:"White builds a big center with another pawn on d4."},
+    {m:'d7d5',san:'d5',r:'b1c3',rsan:'Nc3',glow:['e4'],idea:'Challenge the center',show:['d5e4'],
+     goal:"Mission two: your preparation is done! Push a center pawn two squares to challenge White's pawn on e4.",
+     yes:"Challenge! Your pawn on d5 attacks e4, and it's protected by your c6 pawn. Now White must decide what to do.",
+     deeper:"White has three choices: push past with e5, trade with exd5, or protect e4. Whatever White does, your d5 pawn has made White react. You're fighting for the center as equals!",
+     missed:"This turn was your chance to challenge White's center pawn. You prepared for it, so it was safe.",
+     replyText:"White protects e4 by bringing out a knight."},
+    {m:'d5e4',san:'dxe4',r:'c3e4',rsan:'Nxe4',glow:['e4'],idea:'Trade in the center',show:[],
+     goal:"Mission three: your pawn on d5 and White's pawn on e4 are touching. Who captures first? You do!",
+     yes:"Capture! You removed White's e4 pawn. White will take back with the knight, and the center gets lighter.",
+     deeper:"By capturing on e4, you get rid of one of White's two big center pawns. White recaptures with the knight, which looks active, but you'll soon chase it with your pieces and gain time.",
+     missed:"This turn was your chance to capture White's center pawn. If you wait, White might push past you and gain space.",
+     ok:{g8f6:"Bringing out the knight is a real idea, but White can push e5 and kick it! Capture first."},
+     replyText:"White recaptures with the knight. It sits in the center on e4."},
+    {m:'c8f5',san:'Bf5',r:'e4g3',rsan:'Ng3',glow:['e4'],idea:'Bishop out before e6',show:['f5e4','f5b1'],
+     goal:"Mission four: here's the Caro-Kann secret! Your light-squared bishop on c8 is free right now. Bring it out before your e-pawn moves and locks it in. Bonus points if it attacks White's knight!",
+     yes:"Bishop out with a threat! On f5 your bishop attacks the knight on e4, and it's outside your pawn wall where it can be active. That's the whole idea of the Caro-Kann.",
+     deeper:"In some defenses, Black's light bishop gets stuck behind pawns on e6 and d5. The Caro-Kann gets it out first. Later you'll play e6 to build your wall, and your bishop will already be outside, safe and active.",
+     missed:"This turn was your chance to bring your bishop out before your own pawns lock it in, and to attack White's knight.",
+     ok:{g8f6:"Attacking the knight with a knight is a real move! But the Caro-Kann secret is to get the light bishop out first.",b8d7:"A real move too! But the Caro-Kann's secret is getting the light bishop out first."},
+     wrong:{e7e6:"Careful! If you push e6 now, your bishop on c8 gets locked behind your own pawns. Get the bishop out first!",c8g4:"Bishop out, good thinking! But on g4 it doesn't attack anything important. Find a square where it attacks the knight on e4."},
+     replyText:"White's knight runs to g3 and attacks your bishop on f5!"},
+    {m:'f5g6',san:'Bg6',r:'h2h4',rsan:'h4',glow:['g6'],idea:'Retreat, stay active',show:['g6c2'],rshow:['!h4h5'],
+     goal:"Mission five: your bishop is attacked by the knight on g3. Where can it step back and still watch the same long diagonal?",
+     yes:"Safe! Your bishop on g6 is still on the same diagonal, looking all the way to c2. It also protects your king side.",
+     deeper:"When a piece is chased, try to keep it on the same road. On g6 your bishop still controls e4, d3 and c2. If White ever trades it with the knight, you can recapture with a pawn.",
+     missed:"Your bishop was attacked! This turn was your chance to save it while keeping it on the same diagonal.",
+     ok:{f5d7:"Safe, but on d7 the bishop hides behind your pawns. Keep it active on the same diagonal.",f5e6:"Safe, but on e6 it blocks your e-pawn. Try staying on the same diagonal."},
+     wrong:{f5c8:"Going all the way home throws away your hard work! Stay on the same diagonal."},
+     replyText:"White pushes the h-pawn up to h4! It wants to push again and chase your bishop."},
+    {m:'h7h6',san:'h6',r:'g1f3',rsan:'Nf3',glow:['h7'],idea:'Make an escape square',show:[],
+     goal:"Mission six: watch out! If White's pawn reaches h5, your bishop gets chased again. Can you make a little escape square for it with one pawn step?",
+     yes:"Clever! Your pawn on h6 empties the h7 square, so your bishop has an escape hatch. If White's pawn comes to h5, it can't trap you.",
+     deeper:"Always give your pieces escape squares before they're chased. With h6, if White plays h5, your bishop simply slides to h7 and stays on the same diagonal. And h6 also stops White's pieces from landing on g5.",
+     missed:"White's pawn is coming to chase your bishop! This turn was your chance to make an escape square in time.",
+     ok:{h7h5:"Blocking the pawn is a real move! But it leaves the g5 square weak. Today we make an escape square instead."},
+     replyText:"White brings out a knight to f3."},
+    {plan:true,m:'b8d7',san:'Nd7',r:'h4h5',rsan:'h5',glow:['e5'],idea:'Guard key squares',show:['d7e5'],rshow:['!h5g6'],
+     goal:"The opening is done, now let's plan! White's knight on f3 would love to jump to e5 and attack your bishop. Can you wake up a knight to guard e5?",
+     yes:"Guarded! Your knight on d7 watches e5, so White's knight can't jump there. You're ready for whatever White tries.",
+     deeper:"In the Caro-Kann, this knight goes to d7 first, not f6, so it can control e5. Your other knight comes to f6 later. Both knights work together like goalkeepers.",
+     missed:"This turn was your chance to guard the e5 square before White's knight jumps there.",
+     ok:{g8f6:"Bringing out a knight is good! But the knight on b8 can guard e5. Try that one first."},
+     replyText:"White pushes the pawn to h5 and attacks your bishop! Good thing you made an escape square."},
+    {plan:true,m:'g6h7',san:'Bh7',r:'f1d3',rsan:'Bd3',glow:['h7'],idea:'Use your escape square',show:['h7c2'],rshow:['~d3h7'],
+     goal:"Your bishop is attacked by the pawn on h5! Use the escape hatch you made a few moves ago.",
+     yes:"Escaped! Your bishop slides to h7 and stays on the same long diagonal. Your planning paid off, just like I said it would.",
+     deeper:"See how h6 saved you? Without it, your bishop would have nowhere safe to go on that diagonal. Good players think a few moves ahead about their pieces' safety.",
+     missed:"Your bishop was under attack! This turn was your chance to use the escape square you made.",
+     ok:{g6f5:"Safe, but White's knight on g3 can chase it again. The escape hatch on h7 is calmer."},
+     replyText:"White brings out a bishop to challenge yours. Bishops face to face!"},
+    {plan:true,m:'h7d3',san:'Bxd3',r:'d1d3',rsan:'Qxd3',glow:['d3'],idea:'Trade off attackers',show:[],
+     goal:"White's bishop on d3 is staring at your bishop on h7. That bishop is a dangerous attacker aimed at your king side. What can you do about it?",
+     yes:"Swap! You traded your bishop for White's attacking bishop. White's queen must recapture, and White has one fewer attacker aimed at your king.",
+     deeper:"Trading pieces that attack you is a smart defensive idea. White's bishop on d3 would have aimed at your king all game. Now it's gone, and White's queen had to come out to recapture.",
+     missed:"This turn was your chance to trade off White's most dangerous attacker.",
+     ok:{e7e6:"Building your wall is good, but if White trades on h7, your rook has to recapture from the corner. Trade on your own terms first!"},
+     replyText:"White's queen recaptures and stands on d3."},
+    {plan:true,m:'e7e6',san:'e6',r:'c1d2',rsan:'Bd2',glow:['d5','f5'],idea:'Build the wall',show:['e6d5','e6f5'],
+     goal:"Your light bishop is gone, so now it's safe to build your pawn wall. Which pawn step makes your center rock solid and opens a road for your other bishop on f8?",
+     yes:"The wall is built! Your pawns on c6 and e6 make a strong wall, and your bishop on f8 has a road now. White will find it very hard to break through.",
+     deeper:"Remember the Caro-Kann secret? You got your light bishop out before playing e6. Now e6 doesn't lock anything in. Your pawns on c6, e6, f7 and g7 make a strong shield for your king.",
+     missed:"This turn was your chance to build your pawn wall and open a road for your other bishop.",
+     ok:{g8f6:"A good developing move! But first build your pawn wall, so your bishop on f8 can come out.",e7e5:"Brave! But it leaves gaps in your wall. A one-step push is more solid."},
+     replyText:"White brings out the last bishop to d2, getting ready to castle on the queen side."},
+    {plan:true,m:'g8f6',san:'Ngf6',r:'e1c1',rsan:'O-O-O',glow:['f6'],idea:'Knights guard the king',show:['f6d5','f6e4'],
+     goal:"Final plan move! Your last knight is still sleeping on g8. Where can it wake up to guard your king and watch the center?",
+     yes:"All knights awake! Your knight on f6 guards your king side and watches e4 and d5. Your Caro-Kann fortress is complete!",
+     deeper:"Look at your solid position: a strong pawn wall, both knights guarding key squares, and your light bishop traded for White's attacker. Next you'd bring out your dark bishop and castle. White will have a tough time finding a way in!",
+     missed:"This turn was your chance to wake up your last knight and guard your king.",
+     replyText:"White castles on the queen side! The king hops two squares to the left, and the rook jumps over. Now the real battle begins!"}
+  ]};
+
+LESSONS.italian.color=LESSONS.ruy.color=LESSONS.qg.color='w';
+const ORDER=['italian','ruy','qg','london','scotch','sicilian','caro'];
+
+/* ---------------- Board UI ---------------- */
+const $=id=>document.getElementById(id);
+const gridEl=$('grid'),piecesEl=$('pieces'),arrowG=$('arrowG'),scriptEl=$('script');
+let me='w',OPP='Black',flip=false,openN=0;
+let hintLevel=0,st=startState(),hist=[],L=null,lessonId=null,stepI=0,phase='idle',tries=0,stars=0,run=0,sel=-1,targets=[],lastEntry=null,ideas=[],sans=[];
+let squares=[];
+const vf=s=>flip?7-s%8:s%8,vr=s=>flip?(s>>3):7-(s>>3);
+function buildGrid(){
+  gridEl.innerHTML='';squares=[];
+  for(let row=0;row<8;row++)for(let col=0;col<8;col++){
+    const f=flip?7-col:col,r=flip?row:7-row,s=r*8+f,d=document.createElement('div');
+    d.className='sq'+((f+r)%2===0?' d':'');d.dataset.sq=s;
+    if(row===7){const c=document.createElement('span');c.className='coord f';c.textContent=FILES[f];d.appendChild(c);}
+    if(col===0){const c=document.createElement('span');c.className='coord r';c.textContent=r+1;d.appendChild(c);}
+    squares[s]=d;gridEl.appendChild(d);
+  }
+}
+const pos=s=>({left:vf(s)*12.5+'%',top:vr(s)*12.5+'%'});
+function renderPieces(anims){
+  piecesEl.innerHTML='';const map={};(anims||[]).forEach(a=>map[a.to]=a.from);
+  st.b.forEach((p,s)=>{if(!p)return;
+    const d=document.createElement('div');d.className='pc '+p.c;d.innerHTML='<span>'+GLYPH[p.t]+'︎</span>';
+    const start=map[s]!==undefined?map[s]:s;Object.assign(d.style,pos(start));d.dataset.sq=s;
+    if(s===sel)d.classList.add('lift');
+    piecesEl.appendChild(d);
+    if(start!==s){d.style.transition='none';requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.transition='';Object.assign(d.style,pos(s));}));}
+  });
+}
+function animsFor(m,rev){
+  const a=[{from:m.from,to:m.to}];
+  if(m.castle){const h=m.color==='w'?4:60;a.push(m.castle==='k'?{from:h+3,to:h+1}:{from:h-4,to:h-1});}
+  return rev?a.map(x=>({from:x.to,to:x.from})):a;
+}
+function marks(cls,list){squares.forEach(d=>d.classList.remove(cls));(list||[]).forEach(s=>squares[s]&&squares[s].classList.add(cls));}
+function clearAllMarks(){['sel','dot','cap','good','bad','okm','hint','last','glow'].forEach(c=>marks(c));}
+function doMove(m){hist.push({st,m});st=make(st,m);marks('last',[m.from,m.to]);renderPieces(animsFor(m));}
+function undoMove(){const h=hist.pop();if(!h)return;st=h.st;const prev=hist[hist.length-1];marks('last',prev?[prev.m.from,prev.m.to]:[]);renderPieces(animsFor(h.m,true));}
+function findMove(key){return legal(st).find(m=>N(m.from)+N(m.to)===key);}
+
+/* Paths: draw the squares a piece travels through, so the child sees the exact route (knights get their L). */
+const PATHC={move:'#FF7A2F',idea:'#1C9A60',black:'#4B5578',danger:'#D9434A',ok:'#6B4FD8',hint:'#FF7A2F'};
+$('arrowDefs').innerHTML=Object.entries(PATHC).map(([k,c])=>`<marker id="ah-${k}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join('');
+const ctr=s=>[vf(s)*100+50,vr(s)*100+50];
+function drawPath(key,kind,delay){
+  kind=kind||'idea';
+  if(key[0]==='~'){kind='black';key=key.slice(1);}else if(key[0]==='!'){kind='danger';key=key.slice(1);}
+  const a=S(key.slice(0,2)),b=S(key.slice(2,4)),af=a%8,ar=a>>3,df=b%8-af,dr=(b>>3)-ar,col=PATHC[kind];
+  let pts,sqs=[];
+  if(Math.abs(df)*Math.abs(dr)===2){
+    const tall=Math.abs(dr)===2,corner=tall?(ar+dr)*8+af:ar*8+af+df;
+    sqs=[tall?(ar+Math.sign(dr))*8+af:ar*8+af+Math.sign(df),corner,b];pts=[a,corner,b];
+  }else{
+    const n=Math.max(Math.abs(df),Math.abs(dr)),sf=Math.sign(df),sr=Math.sign(dr);
+    for(let i=1;i<=n;i++)sqs.push((ar+sr*i)*8+af+sf*i);pts=[a,b];
+  }
+  const xy=pts.map(ctr),last=xy[xy.length-1],prev=xy[xy.length-2],seg=Math.hypot(last[0]-prev[0],last[1]-prev[1]),k=(seg-34)/seg;
+  xy[xy.length-1]=[prev[0]+(last[0]-prev[0])*k,prev[1]+(last[1]-prev[1])*k];
+  let len=0;for(let i=1;i<xy.length;i++)len+=Math.hypot(xy[i][0]-xy[i-1][0],xy[i][1]-xy[i-1][1]);
+  const d=delay||0,g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.innerHTML=sqs.map((s,i)=>{const[x,y]=ctr(s);return`<g class="trail" style="animation-delay:${d+i*110}ms"><rect x="${x-50}" y="${y-50}" width="100" height="100" fill="${col}" fill-opacity=".2"/><circle cx="${x}" cy="${y}" r="${s===b?0:9}" fill="${col}" fill-opacity=".8"/></g>`;}).join('')
+    +`<polyline class="ln" points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-opacity=".85" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ah-${kind})" stroke-dasharray="${len}" stroke-dashoffset="${len}"/>`;
+  arrowG.appendChild(g);
+  const ln=g.querySelector('.ln');setTimeout(()=>requestAnimationFrame(()=>{ln.style.strokeDashoffset='0';}),d+30);
+}
+function drawMovePath(m,kind){
+  drawPath(N(m.from)+N(m.to),kind);
+  if(m.castle){const h=m.color==='w'?4:60;drawPath(m.castle==='k'?N(h+3)+N(h+1):N(h-4)+N(h-1),kind,150);}
+}
+function showPaths(list,kind,delay){(list||[]).forEach((p,i)=>drawPath(p,kind,(delay||0)+i*450));}
+function clearArrow(){arrowG.innerHTML='';}
+
+/* ---------------- Input: tap-tap or drag ---------------- */
+let dragFrom=-1;
+const sqAt=(x,y)=>{const el=document.elementFromPoint(x,y);const d=el&&el.closest&&el.closest('.sq');return d?+d.dataset.sq:-1;};
+function select(s){
+  sel=s;targets=s<0?[]:legal(st).filter(m=>m.from===s);
+  marks('sel',s<0?[]:[s]);marks('dot',targets.filter(m=>!m.captured).map(m=>m.to));marks('cap',targets.filter(m=>m.captured).map(m=>m.to));
+  piecesEl.querySelectorAll('.pc').forEach(p=>p.classList.toggle('lift',+p.dataset.sq===s));
+}
+$('board').addEventListener('pointerdown',e=>{
+  const s=sqAt(e.clientX,e.clientY);if(s<0||phase!=='await')return;
+  const t=targets.find(m=>m.to===s);
+  if(sel>=0&&t){select(-1);userMove(t);return;}
+  const p=st.b[s];
+  if(p&&p.c===me){clearArrow();select(s);dragFrom=s;}else select(-1);
+});
+window.addEventListener('pointerup',e=>{
+  if(dragFrom<0)return;const from=dragFrom;dragFrom=-1;
+  const s=sqAt(e.clientX,e.clientY);if(s<0||s===from||phase!=='await')return;
+  const t=targets.find(m=>m.to===s);if(t){select(-1);userMove(t);}
+});
+
+/* ---------------- Grandpa Rook: avatar, voice, transcript ---------------- */
+const GP_SVG=`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#CFD6F2"/><g class="head">
+<ellipse cx="14.5" cy="35" rx="3.6" ry="5.5" fill="#E3AE86"/><ellipse cx="49.5" cy="35" rx="3.6" ry="5.5" fill="#E3AE86"/>
+<ellipse cx="32" cy="34" rx="16.5" ry="18.5" fill="#F1C7A0"/>
+<path d="M16 30c0-5 2-8 4.5-9.5M48 30c0-5-2-8-4.5-9.5" stroke="#F4F5FA" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M14 23c2-9 9.5-13 18-13s16 4 18 13c-5.5-2-11.5-3-18-3s-12.5 1-18 3z" fill="#7B5B45"/>
+<path d="M12.5 23.5c6-3 12.5-4.2 19.5-4.2s13.5 1.2 19.5 4.2c1.2.8.4 2.6-1.2 2-5.6-2-11.6-3-18.3-3s-12.7 1-18.3 3c-1.6.6-2.4-1.2-1.2-2z" fill="#5C4333"/>
+<path d="M21 28.5q4-3 8 0M35 28.5q4-3 8 0" stroke="#F4F5FA" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+<circle cx="25" cy="33" r="5" fill="#FFFFFF" fill-opacity=".35" stroke="#3A3F5C" stroke-width="1.8"/><circle cx="39" cy="33" r="5" fill="#FFFFFF" fill-opacity=".35" stroke="#3A3F5C" stroke-width="1.8"/><path d="M30 33h4" stroke="#3A3F5C" stroke-width="1.8"/>
+<circle cx="25" cy="33.3" r="1.5" fill="#2A2540"/><circle cx="39" cy="33.3" r="1.5" fill="#2A2540"/>
+<path d="M32 35.5q-2.4 4.5 0 5.5" stroke="#D49A70" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M16.5 39c1 12 7.5 20 15.5 20s14.5-8 15.5-20c-3 3-6 4-9 3-2.2-.9-4.2-1.8-6.5-1.8s-4.3.9-6.5 1.8c-3 1-6 0-9-3z" fill="#F4F5FA"/>
+<ellipse class="mouth" cx="32" cy="46" rx="2.8" ry="1.3" fill="#8A4B3A"/>
+<path d="M24.5 43.5c3-2.6 5.6-2.6 7.5-.8 1.9-1.8 4.5-1.8 7.5.8-3 1-5.3 1-7.5.1-2.2.9-4.5.9-7.5-.1z" fill="#DCDFE8"/></g></svg>`;
+$('avatar').innerHTML=GP_SVG;$('heroGp').innerHTML=GP_SVG;
+
+const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
+let voiceOn=true,voice=null,sayToken=0,stopChunk=null;
+try{if(localStorage.getItem('oq-voice')==='off')voiceOn=false;}catch(e){}
+/* Warm, older male voices first. Neural ("Natural", "Enhanced") voices sound far less robotic than standard ones. */
+const NATURAL=/Natural|Neural|Enhanced|Premium|Online/i;
+const GRANDPA=['Ryan','Thomas','Guy','Christopher','Roger','Davis','Eric','Andrew','Brian','Steffan','Tony','Daniel','Arthur','Oliver','Gordon','Aaron','Evan','Nathan','Tom','Google UK English Male','Rishi','Lee','Alex','Grandpa'];
+const NOVELTY=/Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Junior|Ralph|Princess|Fred/;
+const rank=v=>{const i=GRANDPA.findIndex(n=>v.name.includes(n));return(i<0?60:i)-(NATURAL.test(v.name)?40:0)-(/^en-GB/i.test(v.lang)?1:0);};
+const cleanName=n=>n.replace(/^(Microsoft|Google) /,'').replace(/ Online \(Natural\)/,'').replace(/ - English.*$/,'').replace(/ \(English.*\)$/,'');
+function pickVoice(){
+  if(!hasTTS)return;const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)&&!NOVELTY.test(v.name));if(!vs.length)return;
+  vs.sort((a,b)=>rank(a)-rank(b));
+  let saved=null;try{saved=localStorage.getItem('oq-gp-voice');}catch(e){}
+  voice=vs.find(v=>v.name===saved)||vs[0];
+  const sel=$('voiceSel');sel.hidden=false;
+  sel.innerHTML=vs.map(v=>`<option value="${v.name.replace(/"/g,'&quot;')}"${v===voice?' selected':''}>${NATURAL.test(v.name)?'★ ':''}${cleanName(v.name)}${GRANDPA.some(n=>v.name.includes(n))?' (grandpa)':''}</option>`).join('');
+}
+if(hasTTS){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+$('voiceSel').onchange=e=>{const v=speechSynthesis.getVoices().find(v=>v.name===e.target.value);if(v){voice=v;try{localStorage.setItem('oq-gp-voice',v.name);}catch(_){}
+  if(phase!=='busy')say('intro','Voice check',"Hello there, my young friend. I'm Grandpa Rook. Shall we play some chess?");}};
+function renderVoiceBtn(){
+  const b=$('voiceBtn');b.setAttribute('aria-pressed',voiceOn);
+  b.innerHTML=(voiceOn?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>Sound on':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>Sound off');
+}
+$('voiceBtn').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('oq-voice',voiceOn?'on':'off');}catch(e){}if(!voiceOn&&hasTTS)speechSynthesis.cancel();renderVoiceBtn();};
+let actx=null;
+function sfx(kind){
+  if(!voiceOn)return;
+  try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  const seq={good:[[523,0],[659,.09],[784,.18]],bad:[[392,0],[311,.14]],win:[[523,0],[659,.12],[784,.24],[1047,.36],[784,.5],[1047,.62]],move:[[880,0]]}[kind];
+  const t0=actx.currentTime;
+  seq.forEach(([f,t])=>{const o=actx.createOscillator(),g=actx.createGain();o.type=kind==='bad'?'sine':'triangle';o.frequency.value=f;
+    g.gain.setValueAtTime(0,t0+t);g.gain.linearRampToValueAtTime(kind==='move'?.05:.14,t0+t+.02);g.gain.exponentialRampToValueAtTime(.001,t0+t+.28);
+    o.connect(g).connect(actx.destination);o.start(t0+t);o.stop(t0+t+.3);});
+}
+const fill=t=>t.replace(/\{O\}/g,OPP);
+const splitSent=t=>t.match(/[^.!?]+[.!?]+['"”]?\s*|[^.!?]+$/g)||[t];
+function addEntry(kind,label,text){
+  const e=document.createElement('div');e.className='entry '+kind;
+  const l=document.createElement('div');l.className='lab';l.textContent=label;
+  const p=document.createElement('p');
+  splitSent(text).forEach(s=>{const sp=document.createElement('span');sp.className='s';sp.textContent=s;p.appendChild(sp);});
+  e.append(l,p);scriptEl.appendChild(e);
+  while(scriptEl.children.length>40)scriptEl.firstChild.remove();
+  return e;
+}
+function setCur(e){scriptEl.querySelectorAll('.entry.cur').forEach(x=>x!==e&&x.classList.remove('cur'));e.classList.add('cur');
+  requestAnimationFrame(()=>{scriptEl.scrollTop=Math.max(0,e.offsetTop-scriptEl.offsetTop-12);});}
+function talking(on){$('avatar').classList.toggle('talk',on);$('talkState').textContent=on?(voiceOn&&hasTTS?'Speaking':'Reading'):'Ready';}
+function speakChunk(text){
+  return new Promise(res=>{
+    let done=false,w;const fin=()=>{if(done)return;done=true;clearTimeout(w);stopChunk=null;res();};
+    stopChunk=fin;
+    if(!voiceOn||!hasTTS){w=setTimeout(fin,Math.max(1100,text.length*55));return;}
+    const t=text.trim(),u=new SpeechSynthesisUtterance(t),nat=voice&&NATURAL.test(voice.name),ex=/!\s*$/.test(t);
+    if(voice){u.voice=voice;u.lang=voice.lang;}else u.lang='en-GB';
+    // A slower, deeper, warmer delivery; neural voices need less pitch bending to stay natural.
+    u.rate=nat?(ex?.94:.88):(ex?.9:.84);u.pitch=nat?.9:(ex?.82:.74);
+    u.onend=fin;u.onerror=fin;
+    w=setTimeout(fin,text.length*110+3500);
+    speechSynthesis.speak(u);
+  });
+}
+async function say(kind,label,text,reuse){
+  const my=++sayToken;
+  if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();
+  scriptEl.querySelectorAll('.s.now').forEach(x=>x.classList.remove('now'));
+  const e=reuse||addEntry(kind,label,fill(text));lastEntry=e;setCur(e);talking(true);updateButtons();
+  const spans=[...e.querySelectorAll('.s')];
+  for(let i=0;i<spans.length;i++){
+    if(my!==sayToken)return;
+    spans.forEach((s,j)=>s.classList.toggle('now',j===i));
+    await speakChunk(spans[i].textContent);
+    if(i<spans.length-1&&voiceOn&&hasTTS)await wait(240);
+  }
+  if(my===sayToken){spans.forEach(s=>s.classList.remove('now'));talking(false);}
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------------- Coaching logic ---------------- */
+function biggestLoss(movedTo){
+  let worst=null;
+  for(const m of legal(st)){
+    if(!m.captured||m.ep)continue;
+    const after=make(st,m),recap=legal(after).some(x=>x.to===m.to);
+    const loss=recap?VAL[m.captured]-VAL[m.piece]:VAL[m.captured];
+    if(loss<1)continue;if(m.to!==movedTo&&VAL[m.captured]<3)continue;
+    if(!worst||loss>worst.loss)worst={loss,by:m.piece,piece:m.captured,sq:m.to,from:m.from,free:!recap};
+  }
+  return worst;
+}
+function genericAdvice(m,step,before){
+  const h=biggestLoss(m.to);
+  if(h)return`Uh oh! After that move, ${OPP}'s ${NAME[h.by]} can capture your ${NAME[h.piece]} on ${N(h.sq)}${h.free?", and you can't capture back":", and that trade is bad for you"}. Never give away pieces for free!`;
+  const exp=before.b[S(step.m.slice(0,2))].t,f=m.from%8,base=me==='w'?0:56;
+  const home=(HOME[m.piece]||[]).map(x=>x+base);
+  if(m.piece==='q')return G.queen;
+  if(m.piece==='k'&&!m.castle)return G.king;
+  if(m.piece==='r')return G.rook;
+  if(m.piece==='n'&&(m.to%8===0||m.to%8===7))return G.rim;
+  if(m.piece!=='p'&&!home.includes(m.from))return G.twice;
+  if(m.piece==='b'&&exp==='n')return G.bishopFirst;
+  if(m.piece==='p'&&f===5)return G.fpawn;
+  if(m.piece==='p'&&[0,1,6,7].includes(f))return G.edge;
+  if(m.piece==='p'&&exp!=='p')return G.pawnNow;
+  return G.generic;
+}
+const PRAISE=['Splendid move!','Yes, that’s it!','Wonderful!','Well done, my friend!','Marvellous!','Bravo!'];
+function clue(step,level){
+  const from=S(step.m.slice(0,2)),p=st.b[from];
+  return level>1?`Look at the paths: these are all the squares your ${NAME[p.t]} can reach. Which one does the mission?`
+    :`Here's a clue: think about your ${NAME[p.t]} on ${N(from)}. Where could it go to do the mission?`;
+}
+function showClue(step,level){
+  const from=S(step.m.slice(0,2));marks('hint',[from]);
+  if(level>1){clearArrow();legal(st).filter(m=>m.from===from).forEach((m,i)=>drawPath(N(m.from)+N(m.to),'hint',i*120));}
+}
+function userMove(m){
+  const step=L.steps[stepI],key=N(m.from)+N(m.to),before=st;
+  doMove(m);
+  if(key===step.m)correct(false);else wrong(m,key,step,before);
+}
+async function correct(watched){
+  const my=run,step=L.steps[stepI];
+  phase='busy';updateButtons();marks('glow');clearArrow();marks('hint');
+  marks('good',[S(step.m.slice(0,2)),S(step.m.slice(2,4))]);
+  const mv=hist[hist.length-1].m;drawMovePath(mv,'move');showPaths(step.show,'idea',700);sfx('good');
+  if(!watched&&tries===0){stars++;$('stars').classList.remove('pop');void $('stars').offsetWidth;$('stars').classList.add('pop');}
+  sans.push(step.san);renderMoves();renderStars();
+  if(!ideas.includes(step.idea)){ideas.push(step.idea);renderIdeas();}
+  await say(watched?'watch':'good',watched?'Watch this':PRAISE[stepI%PRAISE.length],step.yes);
+  if(my!==run)return;
+  marks('good');
+  if(step.r){
+    await wait(300);if(my!==run)return;
+    const rm=findMove(step.r);clearArrow();if(rm){doMove(rm);drawMovePath(rm,'black');showPaths(step.rshow,'black',600);}sans.push(step.rsan);renderMoves();
+    await wait(500);if(my!==run)return;
+    await say('reply',`${OPP} moves`,step.replyText);if(my!==run)return;
+  }
+  stepI++;
+  if(stepI===openN&&openN<L.steps.length){
+    renderInfo();sfx('win');
+    await say('bridge','Opening complete!',`Wonderful! You've finished the ${L.name} opening. But a game doesn't stop there! Now let's play ${L.steps.length-openN} more moves with a plan, just like a master would.`);
+    if(my!==run)return;
+  }
+  beginStep();
+}
+async function wrong(m,key,step,before){
+  const my=run;phase='busy';tries++;updateButtons();marks('hint');clearArrow();
+  let kind='bad',label='Hmm, not yet',text;
+  if(step.ok&&step.ok[key]){kind='ok';label='Good idea, but…';text=step.ok[key];}
+  else if(step.wrong&&step.wrong[key])text=step.wrong[key];
+  else text=genericAdvice(m,step,before);
+  marks(kind==='ok'?'okm':'bad',[m.from,m.to]);
+  drawMovePath(m,kind==='ok'?'ok':'danger');
+  const h=biggestLoss(m.to);if(h)drawPath(N(h.from)+N(h.sq),'black',500);
+  sfx(kind==='ok'?'move':'bad');
+  // Keep the wrong move on the board while Grandpa explains it, then rewind.
+  await Promise.all([say(kind,label,text),wait(1800)]);if(my!==run)return;
+  marks('bad');marks('okm');clearArrow();undoMove();
+  phase='await';updateButtons();
+  let next=(kind==='bad'&&step.missed?step.missed+' ':'')+"Let's try again!";
+  if(tries>=2){next+=' '+clue(step,tries>=3?2:1);showClue(step,tries>=3?2:1);}
+  say('missed',kind==='bad'?'What you missed':'Try again',next);
+}
+function beginStep(){
+  const step=L.steps[stepI];
+  if(!step){finish();return;}
+  tries=0;hintLevel=0;phase='await';marks('hint');
+  marks('glow',step.glow.map(S));
+  renderInfo();updateButtons();
+  say('mission',step.plan?`Plan move ${stepI-openN+1} of ${L.steps.length-openN}`:`Mission ${stepI+1} of ${openN}`,step.goal);
+}
+function finish(){
+  phase='done';marks('glow');renderInfo();updateButtons();sfx('win');
+  try{localStorage.setItem('oq-done-'+lessonId,String(stars));}catch(e){}
+  const n=L.steps.length;
+  const starLine=stars===n?` You earned all ${n} stars without a single mistake. I'm so proud of you!`:` You earned ${stars} out of ${n} stars. Play again to collect them all!`;
+  say('win','Lesson complete!',L.outro+starLine);
+  const box=document.createElement('div');box.className='summary';
+  box.innerHTML='<h4>What you learned</h4><ul>'+L.summary.map(s=>'<li>'+s+'</li>').join('')+'</ul><div class="row"></div>';
+  const row=box.querySelector('.row');
+  const again=document.createElement('button');again.className='chip-btn';again.type='button';again.textContent='Play it again';again.onclick=()=>startLesson(lessonId);row.appendChild(again);
+  const nx=ORDER[(ORDER.indexOf(lessonId)+1)%ORDER.length];
+  const b=document.createElement('button');b.className='chip-btn';b.type='button';b.textContent='Next: '+LESSONS[nx].name;b.onclick=()=>startLesson(nx);row.appendChild(b);
+  const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent='All openings';h.onclick=goHome;row.appendChild(h);
+  scriptEl.appendChild(box);
+  confetti();
+}
+function startLesson(id){
+  run++;const my=run;lessonId=id;L=LESSONS[id];
+  me=L.color||'w';OPP=me==='w'?'Black':'White';flip=me==='b';openN=L.steps.filter(s=>!s.plan).length;
+  $('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);
+  buildGrid();st=startState();hist=[];stepI=0;stars=0;tries=0;ideas=[];sans=[];phase='busy';select(-1);
+  clearAllMarks();clearArrow();renderPieces();
+  scriptEl.innerHTML='';lastEntry=null;renderInfo();renderStars();renderMoves();renderIdeas();updateButtons();
+  say('intro',"Let's play!",L.intro).then(async()=>{
+    if(my!==run)return;
+    if(L.first){
+      const fm=findMove(L.first);doMove(fm);drawMovePath(fm,'black');sans.push(L.firstSan);renderMoves();
+      await wait(500);if(my!==run)return;
+      await say('reply',`${OPP} moves`,L.firstText);if(my!==run)return;
+    }
+    beginStep();
+  });
+}
+function goHome(){
+  run++;sayToken++;if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();talking(false);
+  phase='idle';lessonId=null;L=null;
+  $('home').hidden=false;$('stage').hidden=true;$('libBtn').hidden=true;renderCards();window.scrollTo(0,0);
+}
+$('homeBtn').onclick=goHome;$('libBtn').onclick=goHome;
+
+/* ---------------- Controls ---------------- */
+$('repeatBtn').onclick=()=>{if(lastEntry)say('','','',lastEntry);};
+$('playBtn').onclick=async()=>{
+  if(phase!=='await')return;const my=run,step=L.steps[stepI];
+  phase='busy';updateButtons();select(-1);marks('hint');clearArrow();drawPath(step.m,'move');
+  await wait(1100);if(my!==run)return;
+  const m=findMove(step.m);if(m)doMove(m);
+  correct(true);
+};
+$('deepBtn').onclick=()=>{
+  if(phase==='done'){say('deeper','Going deeper',L.finalDeeper);return;}
+  if(phase!=='await')return;say('deeper','Going deeper',L.steps[stepI].deeper);
+};
+$('hintBtn').onclick=()=>{
+  if(phase!=='await')return;const step=L.steps[stepI];
+  hintLevel=Math.min(hintLevel+1,2);showClue(step,hintLevel);say('mission','Hint',clue(step,hintLevel));
+};
+$('restartBtn').onclick=()=>{if(lessonId)startLesson(lessonId);};
+function updateButtons(){
+  const a=phase==='await';
+  $('playBtn').disabled=!a;$('hintBtn').disabled=!a;
+  $('deepBtn').disabled=!(a||phase==='done');
+  $('repeatBtn').disabled=!lastEntry||phase==='busy';
+  $('restartBtn').disabled=!lessonId;
+}
+
+/* ---------------- Rendering bits ---------------- */
+function renderInfo(){
+  if(!L)return;$('lessonName').textContent=L.name;
+  const side=`<span class="tag ${me}">You play ${me==='w'?'White':'Black'}</span>`;
+  const where=phase==='done'?'Lesson complete!':stepI<openN?`Opening · mission ${stepI+1} of ${openN}`:`The plan · move ${Math.min(stepI,L.steps.length-1)-openN+1} of ${L.steps.length-openN}`;
+  $('stepInfo').innerHTML=side+'<span>'+where+'</span>';
+  const pr=$('progress');pr.innerHTML='';
+  L.steps.forEach((s,i)=>{
+    if(i===openN)pr.insertAdjacentHTML('beforeend','<span class="gap"></span>');
+    const d=document.createElement('span');d.className='seg'+(s.plan?' plan':'')+(i<stepI||phase==='done'?' done':'')+(i===stepI&&phase!=='done'?' cur':'');pr.appendChild(d);
+  });
+}
+function renderStars(){
+  const n=L?L.steps.length:0;
+  $('stars').innerHTML=`<span class="st" aria-hidden="true">★</span>${stars}<span style="color:var(--muted);font-size:15px">&nbsp;/ ${n}</span>`;
+  $('stars').setAttribute('aria-label',`${stars} of ${n} stars`);
+}
+function renderMoves(){
+  const el=$('moves');el.innerHTML='';
+  if(!sans.length){el.innerHTML='<span class="mv empty">Moves will appear here</span>';return;}
+  for(let i=0;i<sans.length;i+=2){const s=document.createElement('span');s.className='mv';s.innerHTML=`<b>${i/2+1}.</b>${sans[i]}${sans[i+1]?' '+sans[i+1]:''}`;el.appendChild(s);}
+}
+function renderIdeas(){
+  const el=$('ideas');el.innerHTML='<span class="t">Ideas collected</span>';
+  if(!ideas.length){el.insertAdjacentHTML('beforeend','<span class="none">Make good moves to collect them</span>');return;}
+  ideas.forEach(i=>{const s=document.createElement('span');s.className='idea';s.textContent=i;el.appendChild(s);});
+}
+function finalState(l){
+  let s=startState();const seq=(l.first?[l.first]:[]).concat(...l.steps.map(x=>x.r?[x.m,x.r]:[x.m]));
+  for(const k of seq){const m=legal(s).find(m=>N(m.from)+N(m.to)===k);if(!m)break;s=make(s,m);}
+  return s;
+}
+function miniBoard(l){
+  const s=finalState(l),fl=l.color==='b';let h='';
+  for(let row=0;row<8;row++)for(let col=0;col<8;col++){
+    const f=fl?7-col:col,r=fl?row:7-row,p=s.b[r*8+f];
+    h+=`<i class="${(f+r)%2===0?'d':''}${p?' '+p.c:''}">${p?GLYPH[p.t]+'︎':''}</i>`;
+  }
+  return `<span class="mini" aria-hidden="true">${h}</span>`;
+}
+function renderCards(){
+  $('cardsW').innerHTML='';$('cardsB').innerHTML='';
+  ORDER.forEach(id=>{
+    const l=LESSONS[id],open=l.steps.filter(s=>!s.plan).length,b=document.createElement('button');
+    let done=null;try{done=localStorage.getItem('oq-done-'+id);}catch(e){}
+    b.className='card';b.type='button';
+    b.innerHTML=`${miniBoard(l)}<span><strong>${l.name}</strong><span class="tg">${l.tag}</span><span class="meta"><span class="tag ${l.color}">${l.color==='w'?'White':'Black'}</span><span class="tag">${open} missions + ${l.steps.length-open} plan moves</span>${done!==null?`<span class="tag done">★ ${done}/${l.steps.length}</span>`:''}</span></span>`;
+    b.onclick=()=>startLesson(id);
+    $(l.color==='b'?'cardsB':'cardsW').appendChild(b);
+  });
+}
+
+/* ---------------- Confetti ---------------- */
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=$('confetti'),x=c.getContext('2d');c.hidden=false;c.width=innerWidth;c.height=innerHeight;
+  const cols=['#FF7A2F','#FFC43D','#1C9A60','#8193D9','#6B4FD8','#D9434A'];
+  const ps=Array.from({length:140},()=>({x:innerWidth/2+(Math.random()-.5)*200,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+4,c:cols[Math.random()*cols.length|0],a:Math.random()*6}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.15;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore();});
+    if(++t<150)requestAnimationFrame(f);else{x.clearRect(0,0,c.width,c.height);c.hidden=true;}})();
+}
+
+renderVoiceBtn();buildGrid();renderCards();updateButtons();
+</script>
+</body>
+</html>

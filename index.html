@@ -208,6 +208,39 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
   .ctl small{display:none}
   .frame{padding:6px;border-radius:14px}
 }
+/* Phones and tablets in a lesson: one fixed screen. Board and buttons never move; only Grandpa's words scroll. */
+@media (max-width:900px){
+  body.lesson{height:100vh;height:100dvh;overflow:hidden;padding-block:6px 0;display:flex;flex-direction:column}
+  body.lesson .top{margin:0 0 6px;flex:none;gap:6px 8px;flex-wrap:nowrap}
+  body.lesson .brand small,body.lesson .brand h1{display:none}
+  body.lesson .brand .mark{width:36px;height:36px;font-size:24px;border-radius:11px}
+  body.lesson .voicesel{max-width:120px;padding:4px 6px;font-size:13px}
+  body.lesson .pill{padding:4px 10px;font-size:13px}
+  body.lesson .stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
+  body.lesson .boardcol{flex:none;gap:6px}
+  body.lesson .boardhead h2{font-size:19px}
+  body.lesson .boardhead .sub{font-size:12px}
+  body.lesson .starcount{font-size:17px}
+  body.lesson .phases,body.lesson .legend,body.lesson .moves{display:none}
+  body.lesson .wide{width:min(100%,calc(100dvh - 410px))}
+  body.lesson .boardhead,body.lesson .progress{width:100%}
+  body.lesson .wide:first-child{width:100%}
+  body.lesson .frame{padding:5px;border-radius:12px}
+  body.lesson .under{justify-content:center}
+  body.lesson .chip-btn{padding:3px 10px;font-size:13px}
+  body.lesson .panel{flex:1;min-height:0;position:static;max-height:none;border-radius:16px}
+  body.lesson .controls{order:-1;border-top:0;border-bottom:1px solid var(--line);padding:8px;gap:6px}
+  body.lesson .ctl{padding:6px 4px;flex-direction:row;justify-content:center;gap:6px;border-radius:12px}
+  body.lesson .ctl svg{width:20px;height:20px}
+  body.lesson .ctl b{font-size:16px}
+  body.lesson .ctl small{display:none}
+  body.lesson .coachhead{display:none}
+  body.lesson .script{flex:1;min-height:0;max-height:none;padding:10px 12px;gap:10px}
+  body.lesson .entry p{font-size:15px;line-height:1.45}
+  body.lesson .entry.cur p{font-size:16px}
+  body.lesson .ideas{display:none}
+}
+@media (max-width:900px) and (max-height:620px){body.lesson .wide{width:min(100%,calc(100dvh - 330px))}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1348,7 +1381,7 @@ function finish(){
 function startLesson(id){
   run++;const my=run;lessonId=id;L=LESSONS[id];
   me=L.color||'w';OPP=me==='w'?'Black':'White';flip=me==='b';openN=L.steps.filter(s=>!s.plan).length;
-  $('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);
+  document.body.classList.add('lesson');$('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);
   buildGrid();st=startState();hist=[];stepI=0;stars=0;tries=0;ideas=[];sans=[];phase='busy';select(-1);
   clearAllMarks();clearArrow();renderPieces();
   scriptEl.innerHTML='';lastEntry=null;renderInfo();renderStars();renderMoves();renderIdeas();updateButtons();
@@ -1365,7 +1398,7 @@ function startLesson(id){
 function goHome(){
   run++;sayToken++;if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();talking(false);
   phase='idle';lessonId=null;L=null;
-  $('home').hidden=false;$('stage').hidden=true;$('libBtn').hidden=true;renderCards();window.scrollTo(0,0);
+  document.body.classList.remove('lesson');$('home').hidden=false;$('stage').hidden=true;$('libBtn').hidden=true;renderCards();window.scrollTo(0,0);
 }
 $('homeBtn').onclick=goHome;$('libBtn').onclick=goHome;
 

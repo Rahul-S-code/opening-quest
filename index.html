@@ -342,6 +342,30 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
 @media (prefers-reduced-motion: reduce){.turn.go svg,.turn.nudge svg{animation:none}}
 @media (max-width:900px){body.lesson .headright{gap:8px}body.lesson .turn{font-size:14px}body.lesson .turn svg{width:32px;height:32px}}
 @media (max-width:480px){body.lesson .turn span{display:none}}
+
+/* Accounts */
+.pill.acct.on{border-color:var(--good)}
+.pill .av{width:22px;height:22px;border-radius:50%;background:var(--good);color:#fff;display:inline-grid;place-items:center;font-size:12px;margin-left:-6px}
+body.lesson #acctBtn{display:none}
+.guestbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;background:var(--accent-soft);border-radius:16px;padding:10px 16px;font-weight:700}
+.authwrap{position:fixed;inset:0;z-index:50;background:rgba(16,18,42,.55);display:grid;place-items:center;padding:16px;overflow-y:auto}
+.authcard{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);width:min(440px,100%);padding:24px 22px;display:flex;flex-direction:column;gap:12px;text-align:left}
+.authcard .gp{width:72px;height:72px;align-self:center}
+.authcard h2{font-size:26px;text-align:center}
+.authcard>p{margin:0;color:var(--muted);font-weight:600;text-align:center}
+#authForm{display:flex;flex-direction:column;gap:12px}
+.field2{display:flex;flex-direction:column;gap:4px;font-weight:800}
+.field2 input{font:inherit;font-weight:600;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px}
+.field2 input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:600;color:var(--muted)}
+.check input{width:18px;height:18px;margin-top:2px;flex:none}
+.autherr{margin:0;color:var(--bad);font-weight:800;min-height:0}.autherr:empty,.authmsg:empty{display:none}
+.authmsg{margin:0;color:var(--good);font-weight:800}
+#authGo{align-self:stretch}
+.authlinks{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.linkbtn{border:0;background:none;color:var(--deep);font-weight:800;padding:4px 0;text-decoration:underline}
+.skipbtn{border:2px solid var(--line);background:none;border-radius:14px;padding:10px;font-weight:800}
+.note.small{font-size:13px;text-align:center}
 </style>
 </head>
 <body>
@@ -350,9 +374,11 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
   <button class="pill" id="libBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>All openings</button>
   <label for="voiceSel" hidden>Grandpa's voice</label><select class="voicesel" id="voiceSel" hidden></select>
   <button class="pill" id="voiceBtn" type="button" aria-pressed="true"></button>
+  <button class="pill acct" id="acctBtn" type="button" hidden></button>
 </header>
 
 <section class="home" id="home">
+  <div class="guestbar" id="guestBar" hidden><span>You are playing as a guest, so progress won't be saved.</span><button class="chip-btn" id="guestLogin" type="button">Log in to save</button></div>
   <nav class="tabs" id="tabs" aria-label="Sections"><button type="button" data-tab="lessons" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7"/></svg>Lessons</button><button type="button" data-tab="puzzles" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4v3a2 2 0 1 0 4 0V3h3v7h-3a2 2 0 1 0 0 4h3v7h-7v-3a2 2 0 1 0-4 0v3H3V3z"/></svg>Puzzles</button><button type="button" data-tab="play" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg>Play a game</button><button type="button" data-tab="progress" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My progress</button></nav>
   <div class="tabpane" id="tab-lessons">
   <div class="hero">
@@ -409,6 +435,24 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
     <div class="ideas" id="ideas"></div>
   </aside>
 </main>
+<div class="authwrap" id="authBox" hidden>
+  <div class="authcard" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="gp" aria-hidden="true" id="authGp"></div>
+    <h2 id="authTitle">Save your progress</h2>
+    <p id="authLead"></p>
+    <form id="authForm" novalidate>
+      <div class="field2"><label for="authEmail">Parent's email</label><input id="authEmail" type="email" autocomplete="email" required></div>
+      <div class="field2"><label for="authPw">Password</label><input id="authPw" type="password" autocomplete="current-password" minlength="6"></div>
+      <label class="check"><input type="checkbox" id="authParent"> I'm the parent or guardian, and I agree to my email being stored to save my child's progress.</label>
+      <p class="autherr" id="authErr" role="alert"></p><p class="authmsg" id="authMsg" role="status"></p>
+      <button class="startbtn" id="authGo" type="submit">Log in</button>
+      <div class="authlinks"><button type="button" class="linkbtn" id="authSwap">Create an account</button><button type="button" class="linkbtn" id="authForgot">Forgot password?</button><button type="button" class="linkbtn" id="authBack" hidden>Back to log in</button></div>
+    </form>
+    <button class="chip-btn" id="authOut" type="button" hidden>Log out</button>
+    <button class="skipbtn" id="authSkip" type="button">Skip, play without saving</button>
+    <p class="note small" id="authNote">If you skip, your child can still play everything, but practice counts and puzzles are forgotten when the page closes.</p>
+  </div>
+</div>
 <canvas id="confetti" hidden></canvas>
 
 <script>
@@ -2680,7 +2724,14 @@ const PKEY='oq-progress-v1';
 function blankP(){return{lessons:{},puzzles:{},games:{played:0,won:0,lost:0,drawn:0},days:[]};}
 function loadP(){try{const x=JSON.parse(localStorage.getItem(PKEY)||'null');if(x)return Object.assign(blankP(),x);}catch(e){}return blankP();}
 let P=loadP();
-function saveP(){try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}}
+function saveP(){
+  if(typeof accountsOn!=='undefined'&&accountsOn){
+    if(!acct)return; // a guest's progress lives only until the page closes
+    try{localStorage.setItem(ukey(acct.uid),JSON.stringify(P));}catch(e){}
+    clearTimeout(cloudTimer);cloudTimer=setTimeout(()=>{cloudTimer=null;cloudSave();},1500);return;
+  }
+  try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}
+}
 const dayKey=d=>(d||new Date()).toLocaleDateString('en-CA');
 function markDay(){const d=dayKey();if(!P.days.includes(d)){P.days.push(d);if(P.days.length>400)P.days.shift();}}
 function addRep(id,got,how){
@@ -3091,6 +3142,125 @@ const curTab=()=>{let t=null;try{t=localStorage.getItem('oq-tab');}catch(e){}ret
 // Carry over stars saved by the older version as one practice each.
 ORDER.forEach(id=>{let v=null;try{v=localStorage.getItem('oq-done-'+id);}catch(e){}if(v!==null&&!P.lessons[id]){P.lessons[id]={reps:1,best:+v||0,last:null,games:0};saveP();}});
 
+/* ---------------- Accounts: a parent's email login saves progress (Firebase over REST) ---------------- */
+// Firebase web config. These keys are public by design; Firestore rules keep each family's data private.
+var FB_CONFIG=null;
+var FB=window.OQ_FB||(location.protocol==='https:'&&!/claude/.test(location.hostname)?FB_CONFIG:null);
+var accountsOn=!!(FB&&FB.apiKey&&FB.projectId);
+var AKEY='oq-auth',ukey=uid=>'oq-p-'+uid;
+var acct=null,guest=accountsOn,cloudTimer=null;
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v);}catch(e){}};
+const AUTH_ERR={EMAIL_EXISTS:'That email already has an account. Try logging in.',EMAIL_NOT_FOUND:'We could not find that email and password.',
+  INVALID_PASSWORD:'We could not find that email and password.',INVALID_LOGIN_CREDENTIALS:'We could not find that email and password.',
+  INVALID_EMAIL:'Please check the email address.',MISSING_PASSWORD:'Please type a password.',WEAK_PASSWORD:'Please use a password with at least 6 characters.',
+  TOO_MANY_ATTEMPTS_TRY_LATER:'Too many tries. Please wait a few minutes and try again.',USER_DISABLED:'This account has been switched off.'};
+async function fbAuth(path,body){
+  const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:${path}?key=${FB.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){const code=((j.error&&j.error.message)||'').split(' ')[0].split(':')[0];throw new Error(AUTH_ERR[code]||'Something went wrong. Please try again.');}
+  return j;
+}
+function setSession(email,uid,idToken,refresh,expiresIn){
+  acct={email,uid,idToken,refresh,exp:Date.now()+(+expiresIn||3600)*1000};guest=false;
+  lsSet(AKEY,JSON.stringify({email,uid,refresh}));
+}
+async function idToken(){
+  if(acct.exp-Date.now()>60000)return acct.idToken;
+  const r=await fetch(`https://securetoken.googleapis.com/v1/token?key=${FB.apiKey}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(acct.refresh)});
+  if(!r.ok)throw new Error('session');
+  const j=await r.json();setSession(acct.email,j.user_id,j.id_token,j.refresh_token,j.expires_in);return acct.idToken;
+}
+const docUrl=uid=>`https://firestore.googleapis.com/v1/projects/${FB.projectId}/databases/(default)/documents/progress/${uid}`;
+async function cloudLoad(){
+  const r=await fetch(docUrl(acct.uid),{headers:{Authorization:'Bearer '+await idToken()}});
+  if(r.status===404)return null;if(!r.ok)throw new Error('load');
+  const j=await r.json();try{return JSON.parse(j.fields.data.stringValue);}catch(e){return null;}
+}
+async function cloudSave(){
+  if(!acct)return;
+  const body={fields:{data:{stringValue:JSON.stringify(P)},updated:{timestampValue:new Date().toISOString()}}};
+  try{await fetch(docUrl(acct.uid)+'?updateMask.fieldPaths=data&updateMask.fieldPaths=updated',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await idToken()},body:JSON.stringify(body)});}catch(e){}
+}
+// Combine two progress records, keeping the most practice for every opening and puzzle.
+function mergeP(a,b){
+  if(!b)return a;const m=blankP();
+  for(const src of[a,b])for(const[id,r]of Object.entries(src.lessons||{})){const x=m.lessons[id]||(m.lessons[id]={reps:0,best:0,last:null,games:0});
+    x.reps=Math.max(x.reps,r.reps||0);x.best=Math.max(x.best,r.best||0);x.games=Math.max(x.games,r.games||0);if((r.last||'')>(x.last||''))x.last=r.last;}
+  for(const src of[a,b])for(const[id,r]of Object.entries(src.puzzles||{})){const x=m.puzzles[id];if(!x||(r.seen||0)>(x.seen||0))m.puzzles[id]=Object.assign({},r);}
+  for(const k of['played','won','lost','drawn'])m.games[k]=Math.max((a.games||{})[k]||0,(b.games||{})[k]||0);
+  m.days=[...new Set([...(a.days||[]),...(b.days||[])])].sort().slice(-400);
+  return m;
+}
+async function afterLogin(){
+  let local=null;try{local=JSON.parse(lsGet(ukey(acct.uid))||'null');}catch(e){}
+  let legacy=null;try{legacy=JSON.parse(lsGet(PKEY)||'null');}catch(e){}
+  let cloud=null;try{cloud=await cloudLoad();}catch(e){}
+  P=[legacy,local,cloud].reduce((x,y)=>y?mergeP(x,y):x,mergeP(blankP(),P));
+  lsSet(PKEY,null);saveP();renderAccount();refreshHome();
+}
+function refreshHome(){if(!$('home').hidden)showTab(curTab());}
+function logOut(){
+  if(cloudTimer){clearTimeout(cloudTimer);cloudSave();}
+  acct=null;guest=true;lsSet(AKEY,null);P=blankP();renderAccount();refreshHome();openAuth('login');
+}
+/* Login screen */
+let authMode='login';
+function openAuth(m){authMode=m||'login';$('authErr').textContent='';$('authMsg').textContent='';drawAuth();$('authBox').hidden=false;setTimeout(()=>$('authEmail').focus(),50);}
+function closeAuth(){$('authBox').hidden=true;}
+function drawAuth(){
+  const su=authMode==='signup',fp=authMode==='forgot',me_=authMode==='account';
+  $('authTitle').textContent=me_?'Your account':fp?'Reset your password':su?'Create a family account':'Save your progress';
+  $('authLead').textContent=me_?`Signed in as ${acct?acct.email:''}. Progress saves to this account on every device.`:
+    fp?"Type your email and we'll send a link to choose a new password.":
+    su?"A parent's email keeps your child's practice safe and lets you carry on from any device.":
+    "Log in with a parent's email to keep practice counts, puzzles and game results on any device.";
+  $('authForm').hidden=me_;$('authPw').closest('.field2').hidden=fp;$('authParent').closest('.check').hidden=!su;
+  $('authGo').textContent=fp?'Send the link':su?'Create account':'Log in';
+  $('authSwap').textContent=su?'I already have an account':'Create an account';$('authSwap').hidden=fp;
+  $('authForgot').hidden=su||fp;$('authBack').hidden=!fp;
+  $('authOut').hidden=!me_;$('authSkip').textContent=me_?'Close':guest?'Skip, play without saving':'Close';
+  $('authNote').hidden=me_||!guest;
+}
+async function submitAuth(e){
+  e.preventDefault();const email=$('authEmail').value.trim(),pw=$('authPw').value;$('authErr').textContent='';$('authMsg').textContent='';
+  if(authMode==='signup'&&!$('authParent').checked){$('authErr').textContent='Please tick the box to confirm you are the parent or guardian.';return;}
+  $('authGo').disabled=true;
+  try{
+    if(authMode==='forgot'){await fbAuth('sendOobCode',{requestType:'PASSWORD_RESET',email});$('authMsg').textContent='Done! Check your email for the reset link.';}
+    else{
+      const j=await fbAuth(authMode==='signup'?'signUp':'signInWithPassword',{email,password:pw,returnSecureToken:true});
+      setSession(j.email||email,j.localId,j.idToken,j.refreshToken,j.expiresIn);await afterLogin();closeAuth();sfx('good');
+    }
+  }catch(err){$('authErr').textContent=err.message;}
+  $('authGo').disabled=false;
+}
+function renderAccount(){
+  const b=$('acctBtn');if(!b)return;b.hidden=!accountsOn;
+  b.innerHTML=acct?`<span class="av" aria-hidden="true">${(acct.email[0]||'?').toUpperCase()}</span>Account`:'Log in to save';
+  b.classList.toggle('on',!!acct);
+  $('guestBar').hidden=!(accountsOn&&guest);
+}
+if(accountsOn){
+  $('authForm').onsubmit=submitAuth;
+  $('authSwap').onclick=()=>{authMode=authMode==='signup'?'login':'signup';drawAuth();};
+  $('authForgot').onclick=()=>{authMode='forgot';drawAuth();};
+  $('authBack').onclick=()=>{authMode='login';drawAuth();};
+  $('authSkip').onclick=()=>{try{sessionStorage.setItem('oq-guest','1');}catch(e){}closeAuth();};
+  $('authOut').onclick=logOut;
+  $('acctBtn').onclick=()=>openAuth(acct?'account':'login');
+  $('guestLogin').onclick=()=>openAuth('login');
+  // Guests start fresh each visit. A saved login picks up where it left off.
+  P=blankP();
+  let s=null;try{s=JSON.parse(lsGet(AKEY)||'null');}catch(e){}
+  if(s&&s.uid&&s.refresh){
+    acct={email:s.email,uid:s.uid,idToken:'',refresh:s.refresh,exp:0};guest=false;
+    try{P=Object.assign(blankP(),JSON.parse(lsGet(ukey(s.uid))||'null')||{});}catch(e){}
+    afterLogin().catch(()=>{});
+  }else{let skipped=null;try{skipped=sessionStorage.getItem('oq-guest');}catch(e){}if(!skipped)openAuth('login');}
+}
+renderAccount();
+
 const mq=matchMedia('(max-width:900px)'),minis=document.querySelector('.minibtns');
 function placeButtons(){
   if(mq.matches){document.querySelector('.controls').appendChild($('hintBtn'));$('stars').after($('restartBtn'));}
@@ -3098,6 +3268,7 @@ function placeButtons(){
 }
 mq.addEventListener?mq.addEventListener('change',placeButtons):mq.addListener(placeButtons);placeButtons();
 renderVoiceBtn();buildGrid();showTab(curTab());updateButtons();
+if($('authGp'))$('authGp').innerHTML=GP_SVG;
 </script>
 </body>
 </html>

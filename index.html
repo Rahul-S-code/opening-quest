@@ -276,7 +276,8 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
 .bigtile.accent span{color:var(--accent-ink);opacity:.85}
 .bigtile:disabled{opacity:.6;cursor:default}
 .bigtile.stat strong{font-size:38px}
-.hubh{font-size:20px}
+.hubh{font-size:20px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.hubsub{font-family:var(--f-body);font-size:13px;font-weight:700;color:var(--muted)}
 .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .chipcard{position:relative;overflow:hidden;display:flex;flex-direction:column;text-align:left;border:2px solid transparent;background:var(--surface);border-radius:16px;padding:12px 14px 16px;box-shadow:var(--shadow)}
 .chipcard:hover{border-color:var(--accent)}
@@ -1460,7 +1461,7 @@ function finish(){
   const again=document.createElement('button');again.className='chip-btn';again.type='button';again.textContent='Play it again';again.onclick=()=>startLesson(lessonId);row.appendChild(again);
   const nx=ORDER[(ORDER.indexOf(lessonId)+1)%ORDER.length];
   const b=document.createElement('button');b.className='chip-btn';b.type='button';b.textContent='Next: '+LESSONS[nx].name;b.onclick=()=>startLesson(nx);row.appendChild(b);
-  [['Puzzles from this opening',()=>startPuzzles(lessonPuzzles(lessonId),L.name)],['Play it in a game',()=>startGame({color:L.color,level:'gentle',lesson:lessonId})],['All openings',()=>goHome('lessons')]].forEach(([t,f])=>{const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent=t;h.onclick=f;row.appendChild(h);});
+  [['Puzzles from this opening',()=>startPuzzles(openingRounds(lessonId),L.name)],['Play it in a game',()=>startGame({color:L.color,level:'gentle',lesson:lessonId})],['All openings',()=>goHome('lessons')]].forEach(([t,f])=>{const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent=t;h.onclick=f;row.appendChild(h);});
   scriptEl.appendChild(box);
   confetti();
 }
@@ -2740,21 +2741,37 @@ const TRAPS=[
    deeper:"When pawns leave their homes, long diagonals open up. Black's pawns on b7 and c6 moved away, so the road from f3 to a8 was empty. Keep an eye on open diagonals, for you and for your opponent."}
 ];
 function lessonLine(l){return(l.first?[l.first]:[]).concat(...l.steps.map(x=>x.r?[x.m,x.r]:[x.m]));}
+function lineTo(l,n){const out=l.first?[l.first]:[];for(let k=0;k<n;k++){out.push(l.steps[k].m);if(l.steps[k].r)out.push(l.steps[k].r);}return out;}
+const stripMission=g=>g.replace(/^(Mission|Plan move) [a-z]+: /i,'').replace(/^./,c=>c.toUpperCase());
+const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+// One puzzle per position in the opening, starting after move two. Each asks for at most two moves.
 function lessonPuzzles(id){
-  const l=LESSONS[id],out=[];let setup=l.first?[l.first]:[];
-  l.steps.forEach((s,i)=>{
-    out.push({id:id+'-'+i,lesson:id,title:l.name+(s.plan?' · plan':''),color:l.color,setup:setup.slice(),sol:[[s.m]],
-      prompt:s.goal,notes:[s.yes],deeper:s.deeper,ok:s.ok,wrong:s.wrong,step:s});
-    setup.push(s.m);if(s.r)setup.push(s.r);
-  });
+  const l=LESSONS[id],out=[];
+  for(let i=2;i<l.steps.length;i++){
+    const two=i<l.steps.length-1&&!!l.steps[i].r,steps=two?[l.steps[i],l.steps[i+1]]:[l.steps[i]];
+    out.push({id:id+'-'+i,lesson:id,at:i,title:l.name,color:l.color,setup:lineTo(l,i),
+      sol:steps.map(x=>[x.m]),rep:two?[l.steps[i].r]:[],steps,notes:steps.map(x=>x.yes),deeper:steps[0].deeper});
+  }
   return out;
+}
+const shuffled=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const openingRounds=id=>shuffled(lessonPuzzles(id)).slice(0,5);
+function recapText(pz){
+  const l=LESSONS[pz.lesson],done=l.steps.slice(0,pz.at),ideas=[...new Set(done.map(x=>x.idea))].slice(-3).map(x=>x.toLowerCase());
+  const last=done[done.length-1];
+  return `Here's a position from the ${l.name}. So far you have worked on ${listText(ideas)}. The paths on the board show your last moves. ${last.r&&last.replyText?'Then '+last.replyText.replace(/^./,c=>c.toLowerCase()):''}`;
+}
+function showRecap(pz){
+  const mine=hist.filter(h=>h.st.turn===me).slice(-3);
+  mine.forEach((h,i)=>drawMovePath(h.m,'idea'));
+  marks('good',mine.map(h=>h.m.to));
 }
 const allLessonPuzzles=()=>ORDER.flatMap(lessonPuzzles);
 function dueReview(){
   const t=dayKey(),pool=TRAPS.concat(allLessonPuzzles());
   const due=pool.filter(p=>P.puzzles[p.id]&&P.puzzles[p.id].due<=t);
   const fresh=pool.filter(p=>!P.puzzles[p.id]&&(!p.lesson||repsOf(p.lesson)>0));
-  return due.concat(fresh).slice(0,10);
+  return shuffled(due).concat(shuffled(fresh)).slice(0,10);
 }
 const BOXDAYS=[0,1,3,7,14,30];
 function recordPuzzle(id,first){
@@ -2773,7 +2790,13 @@ function loadPuzzle(){
   const lm=hist[hist.length-1];if(lm){marks('last',[lm.m.from,lm.m.to]);drawMovePath(lm.m,'black');}
   pzStep=0;tries=0;hintLevel=0;phase='await';scriptEl.innerHTML='';lastEntry=null;
   renderInfo();renderMoves();updateButtons();
-  say('mission',`Puzzle ${pzI+1} of ${pzQueue.length}`,`${me==='w'?'White':'Black'} to move. ${PZ.prompt}`);
+  if(!PZ.lesson){say('mission',`Puzzle ${pzI+1} of ${pzQueue.length}`,`${me==='w'?'White':'Black'} to move. ${PZ.prompt}`);return;}
+  const my=run;phase='busy';updateButtons();clearArrow();showRecap(PZ);
+  say('intro','What we built so far',recapText(PZ)).then(()=>{
+    if(my!==run)return;marks('good');
+    const st0=PZ.steps[0];marks('glow',st0.glow.map(S));phase='await';updateButtons();
+    say('mission',`Your move · position ${pzI+1} of ${pzQueue.length}`,`Now you're ${me==='w'?'White':'Black'}, and it's your move. ${stripMission(st0.goal)}`+(PZ.sol.length>1?' Find this move, and then one more!':''));
+  });
 }
 function puzzleMove(m){
   const key=N(m.from)+N(m.to),before=st;doMove(m);
@@ -2789,24 +2812,32 @@ async function puzzleRight(m,watched){
   if(!last){
     await wait(300);const rm=findMove(PZ.rep[pzStep]);clearArrow();
     if(rm){sans.push(sanOf(st,rm));doMove(rm);drawMovePath(rm,'black');renderMoves();}
-    pzStep++;phase='await';updateButtons();
-    say('mission','Your move',`${OPP} replied. Now find the next move!`);return;
+    pzStep++;marks('glow');phase='await';updateButtons();
+    const nx=PZ.steps?PZ.steps[pzStep]:null,rt=PZ.steps?PZ.steps[pzStep-1].replyText:'';
+    if(nx)marks('glow',nx.glow.map(S));
+    say('mission','One more move',nx?`${rt} Now your second move: ${stripMission(nx.goal)}`:`${OPP} replied. Now find the next move!`);return;
   }
   recordPuzzle(PZ.id,tries===0);pzSession.done++;if(tries===0)pzSession.first++;
-  phase='solved';renderInfo();updateButtons();if(tries===0)confetti();
+  phase='solved';marks('glow');renderInfo();updateButtons();if(tries===0)confetti();
+  if(PZ.lesson){
+    await wait(1600);if(my!==run||phase!=='solved')return;
+    pzI++;
+    if(pzI<pzQueue.length){await say('intro','New position','Let me reset the board to another position from this opening.');if(my!==run)return;loadPuzzle();}
+    else finishPuzzles();
+  }
 }
 async function puzzleWrong(m,key,before){
   const my=run;phase='busy';tries++;updateButtons();clearArrow();marks('hint');
-  const st0={m:PZ.sol[pzStep][0]};
+  const st0={m:PZ.sol[pzStep][0]},cur=PZ.steps?PZ.steps[pzStep]:PZ;
   let kind='bad',text;
-  if(PZ.ok&&PZ.ok[key]){kind='ok';text=PZ.ok[key];}
-  else if(PZ.wrong&&PZ.wrong[key])text=PZ.wrong[key];
-  else text=genericAdvice(m,PZ.step||st0,before);
+  if(cur.ok&&cur.ok[key]){kind='ok';text=cur.ok[key];}
+  else if(cur.wrong&&cur.wrong[key])text=cur.wrong[key];
+  else text=genericAdvice(m,PZ.steps?cur:st0,before);
   marks(kind==='ok'?'okm':'bad',[m.from,m.to]);drawMovePath(m,kind==='ok'?'ok':'danger');sfx(kind==='ok'?'move':'bad');
   await Promise.all([say(kind,kind==='ok'?'Good idea, but…':'Not quite',text),wait(1500)]);if(my!==run)return;
   marks('bad');marks('okm');clearArrow();undoMove();phase='await';updateButtons();
   if(tries>=2){showClue(st0,tries>=3?2:1);say('missed','Try again',clue(st0,tries>=3?2:1));}
-  else say('missed','Try again',"Look carefully and try again!");
+  else say('missed','Try again',(kind==='bad'&&cur.missed?cur.missed+' ':'')+"Look carefully and try again!");
 }
 function finishPuzzles(){
   phase='done';updateButtons();renderInfo();
@@ -2981,12 +3012,12 @@ function renderPuzzleHub(){
   <button class="bigtile" id="pzTraps" type="button"><strong>Opening traps</strong><span>${TRAPS.length} famous tricks, and how to stop them</span></button>
   <div class="bigtile stat"><strong>${solved}</strong><span>puzzles solved on the first try</span></div>`;
   el.appendChild(top);
-  const h=document.createElement('h3');h.className='hubh';h.textContent='Puzzles from each opening';el.appendChild(h);
+  const h=document.createElement('h3');h.className='hubh';h.innerHTML='Puzzles from each opening <span class="hubsub">5 random positions, two moves each</span>';el.appendChild(h);
   const g=document.createElement('div');g.className='chips';
   ORDER.forEach(id=>{const ps=lessonPuzzles(id),done=ps.filter(p=>P.puzzles[p.id]&&P.puzzles[p.id].solved).length;
     const b=document.createElement('button');b.className='chipcard';b.type='button';
-    b.innerHTML=`<strong>${LESSONS[id].name}</strong><span>${done} / ${ps.length} solved</span><i style="--w:${Math.round(done/ps.length*100)}%"></i>`;
-    b.onclick=()=>startPuzzles(ps,LESSONS[id].name);g.appendChild(b);});
+    b.innerHTML=`<strong>${LESSONS[id].name}</strong><span>${done} / ${ps.length} positions solved</span><i style="--w:${Math.round(done/ps.length*100)}%"></i>`;
+    b.onclick=()=>startPuzzles(openingRounds(id),LESSONS[id].name);g.appendChild(b);});
   el.appendChild(g);
   $('pzReview').onclick=()=>startPuzzles(dueReview(),'Daily review');
   $('pzTraps').onclick=()=>startPuzzles(TRAPS.slice(),'Opening traps');

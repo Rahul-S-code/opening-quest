@@ -322,6 +322,26 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
   .tabs button svg{display:none}
   .field>span,.field>label{min-width:0;width:100%}
 }
+
+/* Apple timer: Grandpa eats it while he talks, then it's the child's move */
+.headright{display:flex;align-items:center;gap:14px;flex:none}
+.turn{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:800;font-size:16px;color:var(--muted);white-space:nowrap}
+.turn svg{width:40px;height:40px;flex:none;overflow:visible}
+.turn .body{fill:#E8423F}.turn .shine{fill:none;stroke:#fff;stroke-opacity:.55;stroke-width:3;stroke-linecap:round}
+.turn .bite{fill:var(--bg);opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.3);transition:opacity .25s,transform .25s}
+.turn .bite.on{opacity:1;transform:scale(1)}
+.turn .core{display:none}.turn .glow{fill:var(--good-soft);stroke:var(--good);stroke-width:2.5}.turn .core path{fill:#F6E7B4;stroke:#D8C27E;stroke-width:1.5}.turn .seed{fill:#5B3A1E}
+.turn .stem{fill:none;stroke:#6B4A2B;stroke-width:3;stroke-linecap:round}.turn .leaf{fill:#3DAA5C}
+.turn.done .whole{display:none}.turn.done .core{display:inline}
+.turn.go{color:var(--good)}
+.turn.go svg{animation:hop 1s ease-in-out infinite}
+.turn.idle{opacity:.45}
+.turn.nudge svg{animation:wiggle .45s ease-in-out}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+@media (prefers-reduced-motion: reduce){.turn.go svg,.turn.nudge svg{animation:none}}
+@media (max-width:900px){body.lesson .headright{gap:8px}body.lesson .turn{font-size:14px}body.lesson .turn svg{width:32px;height:32px}}
+@media (max-width:480px){body.lesson .turn span{display:none}}
 </style>
 </head>
 <body>
@@ -353,7 +373,7 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
     <div class="wide">
       <div class="boardhead">
         <div><h2 id="lessonName">Opening</h2><div class="sub" id="stepInfo"></div></div>
-        <div class="starcount" id="stars" aria-live="polite"></div>
+        <div class="headright"><div class="turn" id="turn" role="status" aria-live="polite"><svg viewBox="0 0 64 64" aria-hidden="true"><g class="whole"><path class="body" d="M32 19C22 10 8 16 9 33C10 49 22 59 32 55C42 59 54 49 55 33C56 16 42 10 32 19Z"/><path class="shine" d="M18 28c1-5 4-8 8-9" /><circle class="bite" cx="54" cy="27" r="8"/><circle class="bite" cx="55" cy="40" r="8"/><circle class="bite" cx="46" cy="53" r="8"/><circle class="bite" cx="18" cy="53" r="8"/><circle class="bite" cx="9" cy="40" r="8"/><circle class="bite" cx="10" cy="27" r="8"/></g><g class="core"><circle class="glow" cx="32" cy="34" r="27"/><path d="M21 15C15 23 28 27 20 34C14 41 26 46 21 54H43C38 46 50 41 44 34C36 27 49 23 43 15Z"/><ellipse class="seed" cx="30" cy="33" rx="1.6" ry="2.6"/><ellipse class="seed" cx="34" cy="33" rx="1.6" ry="2.6"/></g><path class="stem" d="M32 19C32 13 33 9 36 6"/><path class="leaf" d="M34 11C38 5 46 5 49 8C45 13 39 14 34 11Z"/></svg><span id="turnLab">Listen</span></div><div class="starcount" id="stars" aria-live="polite"></div></div>
       </div>
       <div style="margin-top:10px"><div class="progress" id="progress"></div><div class="phases"><span>The opening</span><span class="p2">The plan</span></div></div>
     </div>
@@ -1248,6 +1268,7 @@ function select(s){
 }
 $('board').addEventListener('pointerdown',e=>{
   const s=sqAt(e.clientX,e.clientY);if(s<0||phase!=='await')return;
+  if(speaking){const t=$('turn');t.classList.remove('nudge');void t.offsetWidth;t.classList.add('nudge');return;}
   const t=targets.find(m=>m.to===s);
   if(sel>=0&&t){select(-1);userMove(t);return;}
   const p=st.b[s];
@@ -1323,7 +1344,12 @@ function addEntry(kind,label,text){
 }
 function setCur(e){scriptEl.querySelectorAll('.entry.cur').forEach(x=>x!==e&&x.classList.remove('cur'));e.classList.add('cur');
   requestAnimationFrame(()=>{scriptEl.scrollTop=Math.max(0,e.offsetTop-scriptEl.offsetTop-12);});}
-function talking(on){$('avatar').classList.toggle('talk',on);$('talkState').textContent=on?(voiceOn&&hasTTS?'Speaking':'Reading'):'Ready';}
+let speaking=false;
+function eat(f){const bs=document.querySelectorAll('#turn .bite'),k=Math.round(f*bs.length);bs.forEach((b,i)=>b.classList.toggle('on',i<k));}
+function updateTurn(){const t=$('turn');if(!t)return;const go=!speaking&&phase==='await';
+  t.classList.toggle('done',go);t.classList.toggle('go',go);t.classList.toggle('idle',!speaking&&!go);
+  $('turnLab').textContent=go?'Your move!':speaking?'Listen':'Wait';if(!speaking)eat(go?1:0);}
+function talking(on){speaking=on;if(on)eat(0);updateTurn();$('avatar').classList.toggle('talk',on);$('talkState').textContent=on?(voiceOn&&hasTTS?'Speaking':'Reading'):'Ready';}
 function speakChunk(text){
   return new Promise(res=>{
     let done=false,w;const fin=()=>{if(done)return;done=true;clearTimeout(w);stopChunk=null;res();};
@@ -1346,11 +1372,11 @@ async function say(kind,label,text,reuse){
   const spans=[...e.querySelectorAll('.s')];
   for(let i=0;i<spans.length;i++){
     if(my!==sayToken)return;
-    spans.forEach((s,j)=>s.classList.toggle('now',j===i));
+    spans.forEach((s,j)=>s.classList.toggle('now',j===i));eat(i/spans.length);
     await speakChunk(spans[i].textContent);
     if(i<spans.length-1&&voiceOn&&hasTTS)await wait(240);
   }
-  if(my===sayToken){spans.forEach(s=>s.classList.remove('now'));talking(false);}
+  if(my===sayToken){eat(1);spans.forEach(s=>s.classList.remove('now'));await wait(250);if(my===sayToken)talking(false);}
 }
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
@@ -1539,7 +1565,7 @@ function updateButtons(){
     $('restartBtn').disabled=!lessonId;
   }
   $('repeatBtn').disabled=!lastEntry||phase==='busy';
-  setControls();
+  setControls();updateTurn();
 }
 
 /* ---------------- Rendering bits ---------------- */

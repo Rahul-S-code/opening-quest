@@ -3144,7 +3144,7 @@ ORDER.forEach(id=>{let v=null;try{v=localStorage.getItem('oq-done-'+id);}catch(e
 
 /* ---------------- Accounts: a parent's email login saves progress (Firebase over REST) ---------------- */
 // Firebase web config. These keys are public by design; Firestore rules keep each family's data private.
-var FB_CONFIG=null;
+var FB_CONFIG={apiKey:"AIzaSyCAoVM2o3pWrxogPWJR6iBPiEo7fYGJGhM",authDomain:"grandpa-chess-club.firebaseapp.com",projectId:"grandpa-chess-club"};
 var FB=window.OQ_FB||(location.protocol==='https:'&&!/claude/.test(location.hostname)?FB_CONFIG:null);
 var accountsOn=!!(FB&&FB.apiKey&&FB.projectId);
 var AKEY='oq-auth',ukey=uid=>'oq-p-'+uid;

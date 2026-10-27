@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Opening Quest: Grandpa Rook teaches kids seven chess openings, one move at a time, explaining why every move matters.">
+<meta name="description" content="Opening Quest: Grandpa Rook teaches kids chess openings one move at a time, with puzzles, practice games and a progress tracker.">
 <title>Opening Quest</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -256,6 +256,68 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 }
 @media (max-width:370px){body.lesson .ctl svg,body.lesson .controls .chip-btn svg{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Home tabs, puzzles, play and progress */
+.tabs{display:flex;gap:6px;background:var(--surface);border-radius:999px;padding:5px;box-shadow:var(--shadow);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:1;min-width:max-content;border:0;background:none;border-radius:999px;padding:9px 16px;font-family:var(--f-display);font-weight:800;font-size:17px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.tabs button svg{width:19px;height:19px}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.tabpane{display:flex;flex-direction:column;gap:22px}
+.hubrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.bigtile{display:flex;flex-direction:column;gap:4px;text-align:left;border:2px solid transparent;background:var(--surface);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(--accent)}
+.bigtile strong{font-family:var(--f-display);font-size:23px;line-height:1.1}
+.bigtile span{color:var(--muted);font-weight:700;font-size:15px}
+.bigtile.accent{background:var(--accent);color:var(--accent-ink)}
+.bigtile.accent span{color:var(--accent-ink);opacity:.85}
+.bigtile:disabled{opacity:.6;cursor:default}
+.bigtile.stat strong{font-size:38px}
+.hubh{font-size:20px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.chipcard{position:relative;overflow:hidden;display:flex;flex-direction:column;text-align:left;border:2px solid transparent;background:var(--surface);border-radius:16px;padding:12px 14px 16px;box-shadow:var(--shadow)}
+.chipcard:hover{border-color:var(--accent)}
+.chipcard strong{font-family:var(--f-display);font-size:18px;line-height:1.15}
+.chipcard span{color:var(--muted);font-weight:700;font-size:13px}
+.chipcard i{position:absolute;left:0;bottom:0;height:5px;width:var(--w);background:var(--good)}
+.playcard{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:start;background:var(--surface);border-radius:24px;padding:22px;box-shadow:var(--shadow)}
+.gp.big{width:120px;height:120px}
+.playform{display:flex;flex-direction:column;gap:14px}
+.playform h3{font-size:clamp(22px,3.4vw,30px)}
+.playform p{margin:0;color:var(--muted);font-weight:600;max-width:60ch}
+.field{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.field>span,.field>label{font-weight:800;min-width:140px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);border-radius:999px;padding:4px}
+.seg button{border:0;background:none;border-radius:999px;padding:6px 14px;font-weight:800;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 0 0 2px var(--accent) inset}
+.startbtn{align-self:flex-start;border:0;background:var(--accent);color:var(--accent-ink);border-radius:16px;padding:12px 26px;font-family:var(--f-display);font-size:21px;font-weight:800;box-shadow:var(--shadow)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.tile strong{font-family:var(--f-display);font-size:32px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-weight:700;font-size:14px}
+.nextup{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--accent-soft);border-radius:18px;padding:14px 18px}
+.nextup span{font-weight:800;color:var(--muted);text-transform:uppercase;font-size:12px;letter-spacing:.08em}
+.nextup strong{font-family:var(--f-display);font-size:22px;margin-right:auto}
+.note{margin:0;color:var(--muted);font-weight:600}
+.replist{display:flex;flex-direction:column;gap:8px}
+.reprow{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(90px,2fr) minmax(150px,1.3fr);gap:6px 14px;align-items:center;background:var(--surface);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow)}
+.reprow .rn{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.reprow .rn strong{font-family:var(--f-display);font-size:17px}
+.reprow .rm{font-size:14px;font-weight:700;color:var(--muted)}
+.reprow .rm b{color:var(--ink)}
+.bar{height:12px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;width:var(--w);background:linear-gradient(90deg,var(--accent),#FFC43D);border-radius:999px}
+.card .bar{height:7px;margin-top:8px}
+.tag.lvl{background:var(--deep-soft)}
+#stage[data-mode="game"] .phases,#stage[data-mode="game"] #progress,#stage[data-mode="game"] #stars,#stage[data-mode="puzzle"] .phases,#stage:not([data-mode="lesson"]) #ideas{display:none}
+@media (max-width:640px){
+  .playcard{grid-template-columns:1fr}.gp.big{width:84px;height:84px}
+  .reprow{grid-template-columns:1fr}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;border-radius:20px}
+  .tabs button{font-size:15px;padding:8px 10px;border-radius:14px}
+  .tabs button svg{display:none}
+  .field>span,.field>label{min-width:0;width:100%}
+}
 </style>
 </head>
 <body>
@@ -267,6 +329,8 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 </header>
 
 <section class="home" id="home">
+  <nav class="tabs" id="tabs" aria-label="Sections"><button type="button" data-tab="lessons" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7"/></svg>Lessons</button><button type="button" data-tab="puzzles" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4v3a2 2 0 1 0 4 0V3h3v7h-3a2 2 0 1 0 0 4h3v7h-7v-3a2 2 0 1 0-4 0v3H3V3z"/></svg>Puzzles</button><button type="button" data-tab="play" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg>Play a game</button><button type="button" data-tab="progress" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My progress</button></nav>
+  <div class="tabpane" id="tab-lessons">
   <div class="hero">
     <div class="gp" id="heroGp" aria-hidden="true"></div>
     <div><h2>Pick an opening, and I'll teach you why every move matters</h2>
@@ -274,6 +338,10 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
   </div>
   <div class="shelf"><h3>Openings for White <span class="side">You move first</span></h3><div class="cards" id="cardsW"></div></div>
   <div class="shelf"><h3>Defenses for Black <span class="side">White moves first</span></h3><div class="cards" id="cardsB"></div></div>
+  </div>
+  <div class="tabpane" id="tab-puzzles" hidden></div>
+  <div class="tabpane" id="tab-play" hidden></div>
+  <div class="tabpane" id="tab-progress" hidden></div>
 </section>
 
 <main class="stage" id="stage" hidden>
@@ -1321,6 +1389,8 @@ function showClue(step,level){
   if(level>1){clearArrow();legal(st).filter(m=>m.from===from).forEach((m,i)=>drawPath(N(m.from)+N(m.to),'hint',i*120));}
 }
 function userMove(m){
+  if(mode==='puzzle')return puzzleMove(m);
+  if(mode==='game')return gameMove(m);
   const step=L.steps[stepI],key=N(m.from)+N(m.to),before=st;
   doMove(m);
   if(key===step.m)correct(false);else wrong(m,key,step,before);
@@ -1378,24 +1448,23 @@ function beginStep(){
 }
 function finish(){
   phase='done';marks('glow');renderInfo();updateButtons();sfx('win');
-  try{localStorage.setItem('oq-done-'+lessonId,String(stars));}catch(e){}
-  const n=L.steps.length;
+  const reps=addRep(lessonId,stars),n=L.steps.length;
   const starLine=stars===n?` You earned all ${n} stars without a single mistake. I'm so proud of you!`:` You earned ${stars} out of ${n} stars. Play again to collect them all!`;
-  say('win','Lesson complete!',L.outro+starLine);
+  say('win','Lesson complete!',L.outro+starLine+` That was practice number ${reps} for this opening.`+nextLevelNote(reps));
   const box=document.createElement('div');box.className='summary';
-  box.innerHTML='<h4>What you learned</h4><ul>'+L.summary.map(s=>'<li>'+s+'</li>').join('')+'</ul><div class="row"></div>';
+  box.innerHTML=`<h4>Practice #${reps} · ${levelOf(reps)}</h4><div class="bar" style="margin:4px 0 10px"><i style="--w:${Math.min(100,reps/GOAL*100)}%"></i></div><h4>What you learned</h4><ul>`+L.summary.map(s=>'<li>'+s+'</li>').join('')+'</ul><div class="row"></div>';
   const row=box.querySelector('.row');
   const again=document.createElement('button');again.className='chip-btn';again.type='button';again.textContent='Play it again';again.onclick=()=>startLesson(lessonId);row.appendChild(again);
   const nx=ORDER[(ORDER.indexOf(lessonId)+1)%ORDER.length];
   const b=document.createElement('button');b.className='chip-btn';b.type='button';b.textContent='Next: '+LESSONS[nx].name;b.onclick=()=>startLesson(nx);row.appendChild(b);
-  const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent='All openings';h.onclick=goHome;row.appendChild(h);
+  [['Puzzles from this opening',()=>startPuzzles(lessonPuzzles(lessonId),L.name)],['Play it in a game',()=>startGame({color:L.color,level:'gentle',lesson:lessonId})],['All openings',()=>goHome('lessons')]].forEach(([t,f])=>{const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent=t;h.onclick=f;row.appendChild(h);});
   scriptEl.appendChild(box);
   confetti();
 }
 function startLesson(id){
   run++;const my=run;lessonId=id;L=LESSONS[id];
   me=L.color||'w';OPP=me==='w'?'Black':'White';flip=me==='b';openN=L.steps.filter(s=>!s.plan).length;
-  document.body.classList.add('lesson');$('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);
+  showStage('lesson');
   buildGrid();st=startState();hist=[];stepI=0;stars=0;tries=0;ideas=[];sans=[];phase='busy';select(-1);
   clearAllMarks();clearArrow();renderPieces();
   scriptEl.innerHTML='';lastEntry=null;renderInfo();renderStars();renderMoves();renderIdeas();updateButtons();
@@ -1409,16 +1478,25 @@ function startLesson(id){
     beginStep();
   });
 }
-function goHome(){
+function goHome(tab){
   run++;sayToken++;if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();talking(false);
-  phase='idle';lessonId=null;L=null;
-  document.body.classList.remove('lesson');$('home').hidden=false;$('stage').hidden=true;$('libBtn').hidden=true;renderCards();window.scrollTo(0,0);
+  phase='idle';lessonId=null;L=null;mode='lesson';GM=null;
+  document.body.classList.remove('lesson');$('home').hidden=false;$('stage').hidden=true;$('libBtn').hidden=true;showTab(typeof tab==='string'?tab:curTab());window.scrollTo(0,0);
 }
-$('homeBtn').onclick=goHome;$('libBtn').onclick=goHome;
+$('homeBtn').onclick=()=>goHome();$('libBtn').onclick=()=>goHome();
 
 /* ---------------- Controls ---------------- */
 $('repeatBtn').onclick=()=>{if(lastEntry)say('','','',lastEntry);};
 $('playBtn').onclick=async()=>{
+  if(mode==='puzzle'){
+    if(phase==='solved'){pzI++;if(pzI<pzQueue.length)loadPuzzle();else finishPuzzles();return;}
+    if(phase!=='await')return;const my=run,k=PZ.sol[pzStep][0];
+    phase='busy';updateButtons();select(-1);marks('hint');clearArrow();drawPath(k,'move');
+    await wait(1100);if(my!==run)return;
+    const m=findMove(k);if(m){doMove(m);puzzleRight(m,true);}
+    return;
+  }
+  if(mode==='game'){gameAdvice(true);return;}
   if(phase!=='await')return;const my=run,step=L.steps[stepI];
   phase='busy';updateButtons();select(-1);marks('hint');clearArrow();drawPath(step.m,'move');
   await wait(1100);if(my!==run)return;
@@ -1426,28 +1504,60 @@ $('playBtn').onclick=async()=>{
   correct(true);
 };
 $('deepBtn').onclick=()=>{
+  if(mode==='puzzle'){if(PZ&&(phase==='await'||phase==='solved'))say('deeper','Going deeper',PZ.deeper);return;}
+  if(mode==='game'){gameTakeBack();return;}
   if(phase==='done'){say('deeper','Going deeper',L.finalDeeper);return;}
   if(phase!=='await')return;say('deeper','Going deeper',L.steps[stepI].deeper);
 };
 $('hintBtn').onclick=()=>{
-  if(phase!=='await')return;const step=L.steps[stepI];
-  hintLevel=Math.min(hintLevel+1,2);showClue(step,hintLevel);say('mission','Hint',clue(step,hintLevel));
+  if(phase!=='await')return;
+  if(mode==='game'){gameAdvice(false);return;}
+  const step=mode==='puzzle'?{m:PZ.sol[pzStep][0]}:L.steps[stepI];
+  hintLevel=Math.min(hintLevel+1,2);if(mode==='puzzle')tries=Math.max(tries,1);
+  showClue(step,hintLevel);say('mission','Hint',clue(step,hintLevel));
 };
-$('restartBtn').onclick=()=>{if(lessonId)startLesson(lessonId);};
+$('restartBtn').onclick=()=>{
+  if(mode==='puzzle'){if(phase==='done')return;pzI++;if(pzI<pzQueue.length)loadPuzzle();else finishPuzzles();return;}
+  if(mode==='game'){if(lastGame)startGame(lastGame);return;}
+  if(lessonId)startLesson(lessonId);
+};
 function updateButtons(){
   const a=phase==='await';
-  $('playBtn').disabled=!a;$('hintBtn').disabled=!a;
-  $('deepBtn').disabled=!(a||phase==='done');
+  if(mode==='puzzle'){
+    $('playBtn').disabled=!(a||phase==='solved');$('hintBtn').disabled=!a;
+    $('deepBtn').disabled=!(a||phase==='solved');$('restartBtn').disabled=phase==='done'||phase==='busy';
+  }else if(mode==='game'){
+    $('playBtn').disabled=!a;$('hintBtn').disabled=!a;
+    $('deepBtn').disabled=!((a||phase==='done')&&hist.some(h=>h.st.turn===me));$('restartBtn').disabled=false;
+  }else{
+    $('playBtn').disabled=!a;$('hintBtn').disabled=!a;
+    $('deepBtn').disabled=!(a||phase==='done');
+    $('restartBtn').disabled=!lessonId;
+  }
   $('repeatBtn').disabled=!lastEntry||phase==='busy';
-  $('restartBtn').disabled=!lessonId;
+  setControls();
 }
 
 /* ---------------- Rendering bits ---------------- */
 function renderInfo(){
+  if(mode==='puzzle'){
+    if(!PZ)return;$('lessonName').textContent=PZ.title;
+    const where=phase==='done'?'All done!':`Puzzle ${Math.min(pzI+1,pzQueue.length)} of ${pzQueue.length}`+(pzSession?` · ${pzSession.title}`:'');
+    $('stepInfo').innerHTML=`<span class="tag ${me}">${me==='w'?'White':'Black'} to move</span><span>${where}</span>`;
+    const pr=$('progress');pr.innerHTML='';
+    pzQueue.forEach((p,i)=>{const d=document.createElement('span');d.className='seg'+(i<pzI||(i===pzI&&(phase==='solved'||phase==='done'))?' done':'')+(i===pzI&&phase!=='done'&&phase!=='solved'?' cur':'');pr.appendChild(d);});
+    renderStars();return;
+  }
+  if(mode==='game'){
+    if(!GM)return;$('lessonName').textContent=GM.lesson?'Playing the '+LESSONS[GM.lesson].name:'Game with Grandpa';
+    const mv=Math.floor(hist.length/2)+1;
+    $('stepInfo').innerHTML=`<span class="tag ${me}">You play ${me==='w'?'White':'Black'}</span><span>${GM.over?'Game over':'Move '+mv}</span><span class="tag">${GM.level==='tricky'?'Tricky':'Gentle'} computer</span>`;
+    return;
+  }
   if(!L)return;$('lessonName').textContent=L.name;
   const side=`<span class="tag ${me}">You play ${me==='w'?'White':'Black'}</span>`;
   const where=phase==='done'?'Lesson complete!':stepI<openN?`Opening · mission ${stepI+1} of ${openN}`:`The plan · move ${Math.min(stepI,L.steps.length-1)-openN+1} of ${L.steps.length-openN}`;
-  $('stepInfo').innerHTML=side+'<span>'+where+'</span>';
+  $('stepInfo').innerHTML=side+'<span>'+where+'</span>'+(phase==='done'?'':`<span class="tag lvl">Practice #${repsOf(lessonId)+1}</span>`);
   const pr=$('progress');pr.innerHTML='';
   L.steps.forEach((s,i)=>{
     if(i===openN)pr.insertAdjacentHTML('beforeend','<span class="gap"></span>');
@@ -1455,6 +1565,7 @@ function renderInfo(){
   });
 }
 function renderStars(){
+  if(mode==='puzzle'){const n=pzQueue.length,k=pzSession?pzSession.first:0;$('stars').innerHTML=`<span class="st" aria-hidden="true">★</span>${k}<span style="color:var(--muted);font-size:15px">&nbsp;/ ${n}</span>`;$('stars').setAttribute('aria-label',`${k} of ${n} solved first try`);return;}
   const n=L?L.steps.length:0;
   $('stars').innerHTML=`<span class="st" aria-hidden="true">★</span>${stars}<span style="color:var(--muted);font-size:15px">&nbsp;/ ${n}</span>`;
   $('stars').setAttribute('aria-label',`${stars} of ${n} stars`);
@@ -1486,9 +1597,9 @@ function renderCards(){
   $('cardsW').innerHTML='';$('cardsB').innerHTML='';
   ORDER.forEach(id=>{
     const l=LESSONS[id],open=l.steps.filter(s=>!s.plan).length,b=document.createElement('button');
-    let done=null;try{done=localStorage.getItem('oq-done-'+id);}catch(e){}
+    const r=P.lessons[id]||{reps:0,best:0};
     b.className='card';b.type='button';
-    b.innerHTML=`${miniBoard(l)}<span><strong>${l.name}</strong><span class="tg">${l.tag}</span><span class="meta"><span class="tag ${l.color}">${l.color==='w'?'White':'Black'}</span><span class="tag">${open} missions + ${l.steps.length-open} plan moves</span>${done!==null?`<span class="tag done">★ ${done}/${l.steps.length}</span>`:''}</span></span>`;
+    b.innerHTML=`${miniBoard(l)}<span><strong>${l.name}</strong><span class="tg">${l.tag}</span><span class="meta"><span class="tag ${l.color}">${l.color==='w'?'White':'Black'}</span><span class="tag">${open} missions + ${l.steps.length-open} plan moves</span>${r.reps?`<span class="tag done">★ ${r.best}/${l.steps.length}</span>`:''}<span class="tag lvl">${r.reps?`Practised ${r.reps}× · ${levelOf(r.reps)}`:'Not started'}</span></span><span class="bar" aria-hidden="true"><i style="--w:${Math.min(100,r.reps/GOAL*100)}%"></i></span></span>`;
     b.onclick=()=>startLesson(id);
     $(l.color==='b'?'cardsB':'cardsW').appendChild(b);
   });
@@ -1505,13 +1616,399 @@ function confetti(){
     if(++t<150)requestAnimationFrame(f);else{x.clearRect(0,0,c.width,c.height);c.hidden=true;}})();
 }
 
+/* ---------------- Progress store (kept on this device) ---------------- */
+const PKEY='oq-progress-v1';
+function blankP(){return{lessons:{},puzzles:{},games:{played:0,won:0,lost:0,drawn:0},days:[]};}
+function loadP(){try{const x=JSON.parse(localStorage.getItem(PKEY)||'null');if(x)return Object.assign(blankP(),x);}catch(e){}return blankP();}
+let P=loadP();
+function saveP(){try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}}
+const dayKey=d=>(d||new Date()).toLocaleDateString('en-CA');
+function markDay(){const d=dayKey();if(!P.days.includes(d)){P.days.push(d);if(P.days.length>400)P.days.shift();}}
+function addRep(id,got,how){
+  const r=P.lessons[id]||(P.lessons[id]={reps:0,best:0,last:null,games:0});
+  r.reps++;if(how==='game')r.games++;r.best=Math.max(r.best,got||0);r.last=dayKey();markDay();saveP();return r.reps;
+}
+function streak(){
+  const set=new Set(P.days),d=new Date();let n=0;
+  if(!set.has(dayKey(d)))d.setDate(d.getDate()-1);
+  while(set.has(dayKey(d))){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+const GOAL=10;
+const LEVELS=[[0,'New'],[1,'Learning'],[3,'Practising'],[6,'Strong'],[10,'Master']];
+const levelOf=n=>{let l=LEVELS[0][1];for(const[x,name]of LEVELS)if(n>=x)l=name;return l;};
+const repsOf=id=>(P.lessons[id]||{}).reps||0;
+function nextLevelNote(n){const nx=LEVELS.find(([x])=>x>n);return nx?` ${nx[0]-n} more to reach ${nx[1]}.`:' You are a Master of this opening!';}
+
+/* ---------------- Move names (SAN) ---------------- */
+function sanOf(s,m){
+  let t;
+  if(m.castle)t=m.castle==='k'?'O-O':'O-O-O';
+  else{
+    let dis='';
+    if(m.piece!=='p'&&m.piece!=='k'){
+      const others=legal(s).filter(x=>x.piece===m.piece&&x.to===m.to&&x.from!==m.from);
+      if(others.length){const sf=others.some(x=>x.from%8===m.from%8),sr=others.some(x=>(x.from>>3)===(m.from>>3));dis=!sf?FILES[m.from%8]:!sr?String((m.from>>3)+1):N(m.from);}
+    }
+    t=(m.piece==='p'?(m.captured?FILES[m.from%8]:''):m.piece.toUpperCase())+dis+(m.captured?'x':'')+N(m.to)+(m.promo?'=Q':'');
+  }
+  const n=make(s,m),k=n.b.findIndex(p=>p&&p.t==='k'&&p.c===n.turn);
+  if(attacked(n.b,k,s.turn))t+=legal(n).length?'+':'#';
+  return t;
+}
+const kingSq=(s,c)=>s.b.findIndex(p=>p&&p.t==='k'&&p.c===c);
+const inCheck=s=>attacked(s.b,kingSq(s,s.turn),s.turn==='w'?'b':'w');
+
+/* ---------------- Puzzles ---------------- */
+const TRAPS=[
+  {id:'t-scholar-stop',title:"Stop the Scholar's Mate",color:'b',setup:['e2e4','e7e5','d1h5','b8c6','f1c4'],sol:[['g7g6','d8e7','d8f6']],
+   prompt:"White's queen and bishop are both aiming at f7, right next to your king. If you're not careful, the queen takes f7 and it's checkmate! Find a move that stops it.",
+   notes:["You stopped it! Now the checkmate on f7 doesn't work anymore. Lots of beginners fall for this trap, but not you!"],
+   deeper:"This is called the Scholar's Mate. White's queen and bishop team up on f7, the square only your king protects. The fix is to guard f7 or push the queen away. After that, White's queen is out early, and you can chase her with your pieces."},
+  {id:'t-scholar',title:"The Scholar's Mate",color:'w',setup:['e2e4','e7e5','f1c4','b8c6','d1h5','g8f6'],sol:[['h5f7']],
+   prompt:"Black just brought out a knight to attack your queen, but forgot something important. Your queen and bishop are both aiming at the same square next to Black's king. Can you finish the game in one move?",
+   notes:["Checkmate! Your queen takes f7, the bishop on c4 protects her, and Black's king has nowhere to run. Now you know this trick, so you'll never fall for it yourself!"],
+   deeper:"f7 is the weakest square for Black at the start, because only the king protects it. When two attackers aim at it and Black doesn't defend, it's checkmate. Against good players this rarely works, so use it as a lesson about f7, not as a plan!"},
+  {id:'t-fool',title:"The Fool's Mate",color:'b',setup:['f2f3','e7e5','g2g4'],sol:[['d8h4']],
+   prompt:"White pushed two pawns next to the king, and left a road wide open. Can your queen find it and win the game right now?",
+   notes:["Checkmate in just two moves! White's pawns moved away from the king and opened a road for your queen. This is the Fool's Mate, the fastest checkmate in chess."],
+   deeper:"The pawns in front of the king are its shield. White moved the f-pawn and g-pawn, which opened the diagonal from h4 to e1. That's why we don't push those pawns early!"},
+  {id:'t-early-queen',title:'Meet the early queen',color:'b',setup:['e2e4','e7e5','d1h5'],sol:[['b8c6']],
+   prompt:"White's queen came out early and attacks your pawn on e5. Can you protect it and bring a new piece into the game at the same time?",
+   ok:{d7d6:"That protects e5, good! But a different move protects it and wakes up a sleeping piece too. Try again."},
+   notes:["Perfect! Your knight protects e5 and joins the game. Now keep an eye on f7, because White's queen and bishop might team up next."],
+   deeper:"When the queen comes out early, answer by developing pieces with tempo. Every time your pieces attack her, she has to run, and you get free moves."},
+  {id:'t-legal',title:"Legal's Mate",color:'w',setup:['e2e4','e7e5','g1f3','d7d6','f1c4','c8g4','b1c3','g7g6'],sol:[['f3e5'],['c4f7'],['c3d5']],rep:['g4d1','e8e7'],
+   prompt:"Black's bishop is pinning your knight to your queen. Most players would be scared. But there's a famous trick here! Can you find a brave knight move?",
+   notes:["Brave! You let Black take your queen. Now watch what happens next.","Check! Black's king has to step forward.","Checkmate! This is Legal's Mate. You gave up your queen, but your little pieces trapped the king!"],
+   deeper:"The pin wasn't a real pin, because your knight was only stuck to the queen, not the king. Moving it anyway set up a checkmate with three small pieces. Sometimes the queen is worth giving up for the king!"},
+  {id:'t-fried-liver',title:'The Fried Liver Attack',color:'w',setup:['e2e4','e7e5','g1f3','b8c6','f1c4','g8f6','f3g5','d7d5','e4d5','f6d5'],sol:[['g5f7']],
+   prompt:"Black's knight just took back on d5. Look at Black's weak square, f7. Can your knight jump in there, even if the king can capture it?",
+   notes:["The Fried Liver Attack! Your knight takes f7 and attacks the queen and the rook at the same time. If the king takes it, your queen jumps to f3 with check, and Black's king is stuck in the middle. Scary for Black!"],
+   deeper:"This is a sacrifice: you give a knight to drag Black's king into the open. Next come Qf3+, and the knight on d5 is pinned and attacked. It's a famous attack, and it shows why Black should be careful with f7."},
+  {id:'t-blackburne',title:'The Blackburne trap',color:'b',setup:['e2e4','e7e5','g1f3','b8c6','f1c4','c6d4','f3e5'],sol:[['d8g5']],
+   prompt:"White just grabbed your pawn on e5. But now White's knight and the pawn on g2 are both unprotected. Can your queen attack them both at once?",
+   notes:["A fork! Your queen attacks the knight on e5 and the pawn on g2. If White greedily takes f7, you grab g2 and then the rook in the corner. This trap is called the Blackburne Shilling Gambit."],
+   deeper:"A fork is one piece attacking two things at once. Queens are great at forks because they move in every direction. Always look for undefended pieces: they are the easiest targets."},
+  {id:'t-elephant',title:'The Elephant Trap',color:'b',setup:['d2d4','d7d5','c2c4','e7e6','b1c3','g8f6','c1g5','b8d7','c4d5','e6d5','c3d5'],sol:[['f6d5']],
+   prompt:"White's knight just grabbed your pawn on d5. It looks like your knight on f6 is pinned to your queen. But is it really? Be brave!",
+   notes:["The Elephant Trap! You took the knight even though your queen looks unprotected. If White takes your queen, your bishop checks from b4 and wins White's queen back, and you end up a whole piece ahead!"],
+   deeper:"Before you believe a pin, check what happens if you break it. Here, after White takes your queen, Bb4+ forces White's queen to block on d2, and you capture it. Counting carefully turns a scary pin into a win."},
+  {id:'t-noah',title:"Noah's Ark Trap",color:'b',setup:['e2e4','e7e5','g1f3','b8c6','f1b5','a7a6','b5a4','d7d6','d2d4','b7b5','a4b3','c6d4','f3d4','e5d4','d1d4'],sol:[['c7c5']],
+   prompt:"White's queen just grabbed your pawn on d4. Look at White's bishop on b3: it doesn't have many safe squares! Can a pawn kick the queen and start building a cage around the bishop?",
+   notes:["Noah's Ark Trap! The queen must run, and then your pawn goes to c4, trapping the bishop behind your pawns. White loses a whole bishop!"],
+   deeper:"Pieces with no escape squares can get trapped by pawns. Your pawns on a6, b5 and c5 make a cage. Always check that your own pieces have a way out!"},
+  {id:'t-smothered',title:'Smothered in the Caro-Kann',color:'w',setup:['e2e4','c7c6','d2d4','d7d5','b1c3','d5e4','c3e4','b8d7','d1e2','g8f6'],sol:[['e4d6']],
+   prompt:"Black just made a careless knight move. Look at Black's king: it's surrounded by its own pieces! Can your knight give a check that the king can't escape?",
+   notes:["Checkmate! It's a smothered mate. Black's king is blocked by its own pieces, and the pawn on e7 can't take your knight because your queen pins it to the king."],
+   deeper:"A smothered mate happens when the king is trapped by its own pieces and a knight gives check. Knights jump, so the check can't be blocked. Your queen on e2 made it work by pinning the e7 pawn."},
+  {id:'t-qga',title:'Greedy in the Queen’s Gambit',color:'w',setup:['d2d4','d7d5','c2c4','d5c4','e2e3','b7b5','a2a4','c7c6','a4b5','c6b5'],sol:[['d1f3']],
+   prompt:"Black is holding on to the extra pawn. But look at the long diagonal from your queen toward Black's rook in the corner on a8. What's in the way? Nothing!",
+   notes:["Got it! Your queen attacks the rook on a8 along the open diagonal. Black loses material, all because Black was too greedy about one pawn."],
+   deeper:"When pawns leave their homes, long diagonals open up. Black's pawns on b7 and c6 moved away, so the road from f3 to a8 was empty. Keep an eye on open diagonals, for you and for your opponent."}
+];
+function lessonLine(l){return(l.first?[l.first]:[]).concat(...l.steps.map(x=>x.r?[x.m,x.r]:[x.m]));}
+function lessonPuzzles(id){
+  const l=LESSONS[id],out=[];let setup=l.first?[l.first]:[];
+  l.steps.forEach((s,i)=>{
+    out.push({id:id+'-'+i,lesson:id,title:l.name+(s.plan?' · plan':''),color:l.color,setup:setup.slice(),sol:[[s.m]],
+      prompt:s.goal,notes:[s.yes],deeper:s.deeper,ok:s.ok,wrong:s.wrong,step:s});
+    setup.push(s.m);if(s.r)setup.push(s.r);
+  });
+  return out;
+}
+const allLessonPuzzles=()=>ORDER.flatMap(lessonPuzzles);
+function dueReview(){
+  const t=dayKey(),pool=TRAPS.concat(allLessonPuzzles());
+  const due=pool.filter(p=>P.puzzles[p.id]&&P.puzzles[p.id].due<=t);
+  const fresh=pool.filter(p=>!P.puzzles[p.id]&&(!p.lesson||repsOf(p.lesson)>0));
+  return due.concat(fresh).slice(0,10);
+}
+const BOXDAYS=[0,1,3,7,14,30];
+function recordPuzzle(id,first){
+  const r=P.puzzles[id]||(P.puzzles[id]={box:0,solved:0,seen:0});
+  r.seen++;if(first){r.solved++;r.box=Math.min(r.box+1,5);}else r.box=1;
+  const d=new Date();d.setDate(d.getDate()+BOXDAYS[r.box]);r.due=dayKey(d);markDay();saveP();
+}
+let mode='lesson',PZ=null,pzQueue=[],pzI=0,pzStep=0,pzSession=null;
+function startPuzzles(list,title){if(!list.length)return;pzQueue=list;pzI=0;pzSession={title,done:0,first:0};showStage('puzzle');loadPuzzle();}
+function loadPuzzle(){
+  run++;PZ=pzQueue[pzI];
+  me=PZ.color;OPP=me==='w'?'Black':'White';flip=me==='b';
+  buildGrid();st=startState();hist=[];sans=[];
+  for(const k of PZ.setup){const m=findMove(k);sans.push(sanOf(st,m));hist.push({st,m});st=make(st,m);}
+  clearAllMarks();clearArrow();renderPieces();
+  const lm=hist[hist.length-1];if(lm){marks('last',[lm.m.from,lm.m.to]);drawMovePath(lm.m,'black');}
+  pzStep=0;tries=0;hintLevel=0;phase='await';scriptEl.innerHTML='';lastEntry=null;
+  renderInfo();renderMoves();updateButtons();
+  say('mission',`Puzzle ${pzI+1} of ${pzQueue.length}`,`${me==='w'?'White':'Black'} to move. ${PZ.prompt}`);
+}
+function puzzleMove(m){
+  const key=N(m.from)+N(m.to),before=st;doMove(m);
+  if(PZ.sol[pzStep].includes(key))puzzleRight(m,false);else puzzleWrong(m,key,before);
+}
+async function puzzleRight(m,watched){
+  const my=run;phase='busy';updateButtons();clearArrow();marks('hint');
+  marks('good',[m.from,m.to]);drawMovePath(m,'move');sfx('good');sans.push(sanOf(hist[hist.length-1].st,m));renderMoves();
+  const last=pzStep===PZ.sol.length-1,note=PZ.notes[Math.min(pzStep,PZ.notes.length-1)];
+  if(watched)tries=Math.max(tries,1);
+  await say(watched?'watch':'good',last?(watched?'Here it is':'Solved!'):'Yes! Keep going',note);if(my!==run)return;
+  marks('good');
+  if(!last){
+    await wait(300);const rm=findMove(PZ.rep[pzStep]);clearArrow();
+    if(rm){sans.push(sanOf(st,rm));doMove(rm);drawMovePath(rm,'black');renderMoves();}
+    pzStep++;phase='await';updateButtons();
+    say('mission','Your move',`${OPP} replied. Now find the next move!`);return;
+  }
+  recordPuzzle(PZ.id,tries===0);pzSession.done++;if(tries===0)pzSession.first++;
+  phase='solved';renderInfo();updateButtons();if(tries===0)confetti();
+}
+async function puzzleWrong(m,key,before){
+  const my=run;phase='busy';tries++;updateButtons();clearArrow();marks('hint');
+  const st0={m:PZ.sol[pzStep][0]};
+  let kind='bad',text;
+  if(PZ.ok&&PZ.ok[key]){kind='ok';text=PZ.ok[key];}
+  else if(PZ.wrong&&PZ.wrong[key])text=PZ.wrong[key];
+  else text=genericAdvice(m,PZ.step||st0,before);
+  marks(kind==='ok'?'okm':'bad',[m.from,m.to]);drawMovePath(m,kind==='ok'?'ok':'danger');sfx(kind==='ok'?'move':'bad');
+  await Promise.all([say(kind,kind==='ok'?'Good idea, but…':'Not quite',text),wait(1500)]);if(my!==run)return;
+  marks('bad');marks('okm');clearArrow();undoMove();phase='await';updateButtons();
+  if(tries>=2){showClue(st0,tries>=3?2:1);say('missed','Try again',clue(st0,tries>=3?2:1));}
+  else say('missed','Try again',"Look carefully and try again!");
+}
+function finishPuzzles(){
+  phase='done';updateButtons();renderInfo();
+  const s=pzSession;sfx('win');
+  say('win','Puzzles complete!',`You solved ${s.done} puzzles, and ${s.first} of them on the very first try. Puzzles you found tricky will come back in your daily review, so they stick in your memory.`);
+  const box=document.createElement('div');box.className='summary';box.innerHTML='<h4>Well done!</h4><div class="row"></div>';
+  const row=box.querySelector('.row');
+  [['More puzzles',()=>goHome('puzzles')],['My progress',()=>goHome('progress')]].forEach(([t,f])=>{const b=document.createElement('button');b.className='chip-btn';b.type='button';b.textContent=t;b.onclick=f;row.appendChild(b);});
+  scriptEl.appendChild(box);
+}
+
+/* ---------------- Full game against Grandpa's computer ---------------- */
+const EV={p:100,n:320,b:330,r:500,q:900,k:0};
+function evalW(s){
+  let sc=0;const queens=s.b.some(p=>p&&p.t==='q');
+  for(let i=0;i<64;i++){const p=s.b[i];if(!p)continue;const f=i%8,r=i>>3,rr=p.c==='w'?r:7-r,cd=Math.abs(3.5-f)+Math.abs(3.5-r);let v=EV[p.t];
+    if(p.t==='p')v+=rr*6+((f===3||f===4)&&rr>=3?14:0);
+    else if(p.t==='n')v-=cd*9+(rr===0?12:0);
+    else if(p.t==='b')v-=cd*4+(rr===0?14:0);
+    else if(p.t==='q')v-=queens&&rr>=3?8:0;
+    else if(p.t==='k'&&queens)v+=rr===0&&(f===6||f===2||f===1)?35:rr>0?-30:0;
+    sc+=p.c==='w'?v:-v;}
+  return sc;
+}
+const order=ms=>ms.sort((a,b)=>(b.captured?EV[b.captured]*10-EV[b.piece]:0)-(a.captured?EV[a.captured]*10-EV[a.piece]:0));
+function quiesce(s,a,b,q){
+  const stand=(s.turn==='w'?1:-1)*evalW(s);if(stand>=b)return stand;if(stand>a)a=stand;if(q<=0)return a;
+  for(const m of order(legal(s).filter(m=>m.captured))){const v=-quiesce(make(s,m),-b,-a,q-1);if(v>a){a=v;if(a>=b)break;}}
+  return a;
+}
+function search(s,depth,a,b,ply){
+  const ms=legal(s);
+  if(!ms.length)return inCheck(s)?-99999+ply:0;
+  if(depth<=0)return quiesce(s,a,b,2);
+  for(const m of order(ms)){const v=-search(make(s,m),depth-1,-b,-a,ply+1);if(v>a){a=v;if(a>=b)break;}}
+  return a;
+}
+function bestMove(s,level){
+  const depth=level==='tricky'?2:1,noise=level==='tricky'?20:90;let best=null,bv=-1e9;
+  for(const m of order(legal(s))){const v=-search(make(s,m),depth-1,-1e9,1e9,1)+Math.random()*noise;if(v>bv){bv=v;best=m;}}
+  return best;
+}
+let GM=null;
+function startGame(opts){
+  lastGame=Object.assign({},opts);if(hasTTS)speechSynthesis.cancel();showStage('game');run++;
+  me=opts.color==='r'?(Math.random()<.5?'w':'b'):opts.color;OPP=me==='w'?'Black':'White';flip=me==='b';
+  const lines=(opts.lesson?[opts.lesson]:ORDER).map(id=>({id,line:lessonLine(LESSONS[id])}));
+  GM={level:opts.level,lesson:opts.lesson||null,lines,childN:0,castled:false,warnedCastle:false,credited:{},lastThreat:null,over:false};
+  buildGrid();st=startState();hist=[];sans=[];clearAllMarks();clearArrow();renderPieces();
+  scriptEl.innerHTML='';lastEntry=null;phase='busy';renderInfo();renderMoves();updateButtons();
+  const my=run,practise=opts.lesson?` I'll play the ${LESSONS[opts.lesson].name} with you, so you can practise it in a real game.`:'';
+  say('intro',"Let's play a game!",`Now we play a real game, my young friend. You are ${me==='w'?'White':'Black'}.${practise} I'll give you tips along the way. If you make a mistake, you can press Take back.`).then(()=>{
+    if(my!==run)return;if(me==='w'){phase='await';updateButtons();}else computerMove();
+  });
+}
+function histKeys(){return hist.map(h=>N(h.m.from)+N(h.m.to));}
+function bookMove(){
+  const seq=histKeys(),n=seq.length,cands=[];
+  for(const{line}of GM.lines){if(line.length>n&&seq.every((k,i)=>line[i]===k))cands.push(line[n]);}
+  if(!cands.length)return null;
+  return findMove(cands[Math.random()*cands.length|0]);
+}
+function checkGameOver(){
+  const ms=legal(st);let res=null;
+  if(!ms.length)res=inCheck(st)?(st.turn===me?'lost':'won'):'drawn';
+  else if(st.b.filter(Boolean).length===2||hist.length>=300)res='drawn';
+  if(!res)return false;
+  GM.over=true;phase='done';P.games.played++;P.games[res]++;markDay();saveP();updateButtons();renderInfo();
+  const msg={won:"Checkmate! You won the game! I'm so proud of you. Every opening idea you practised helped you get here.",
+    lost:"Checkmate. This time I won, but that's how we learn! Press New game and try again. Remember: develop your pieces, castle early, and watch out for pieces that can be captured.",
+    drawn:"It's a draw! Nobody can win this position. A draw against a tricky opponent is a good result."}[res];
+  if(res==='won'){sfx('win');confetti();}
+  say(res==='won'?'win':res==='lost'?'bad':'intro',res==='won'?'You won!':res==='lost'?'Game over':'Draw',msg);
+  return true;
+}
+function creditOpenings(){
+  const seq=histKeys();
+  for(const{id,line}of GM.lines){
+    const l=LESSONS[id];if(l.color!==me||GM.credited[id])continue;
+    const myLast=(l.first?1:0)+l.steps.filter(s=>!s.plan).reduce((a,s)=>a+(s.r?2:1),0)-(l.steps.filter(s=>!s.plan).slice(-1)[0].r?1:0);
+    if(seq.length>=myLast&&line.slice(0,myLast).every((k,i)=>seq[i]===k)){
+      GM.credited[id]=true;const n=addRep(id,0,'game');
+      return `Wonderful! You just played the whole ${l.name} opening in a real game. That counts as practice number ${n}.`+nextLevelNote(n);
+    }
+  }
+  return null;
+}
+function childComment(m,before){
+  const n=GM.childN,base=me==='w'?0:56,home=(HOME[m.piece]||[]).map(x=>x+base);
+  const h=biggestLoss(m.to);
+  if(h&&h.loss>=2)return{kind:'bad',label:'Careful!',text:`Watch out! ${OPP}'s ${NAME[h.by]} can capture your ${NAME[h.piece]} on ${N(h.sq)}${h.free?' for free':''}. You can press Take back and try a different move.`,path:N(h.from)+N(h.sq)};
+  if(m.castle){GM.castled=true;return{kind:'good',label:'Castled!',text:'Castled! Your king is safe in the corner, and your rook is ready to fight. Well done!'};}
+  if(m.captured&&VAL[m.captured]>=3)return{kind:'good',label:'Nice capture!',text:`Nice capture! You won a ${NAME[m.captured]}.`};
+  if(n<=10){
+    if(m.piece==='q'&&n<=5)return{kind:'ok',label:'A tip',text:fill(G.queen)};
+    if(m.piece==='k')return{kind:'ok',label:'A tip',text:G.king};
+    if(m.piece==='n'&&(m.to%8===0||m.to%8===7))return{kind:'ok',label:'A tip',text:G.rim};
+    const sleeping=[...HOME.n,...HOME.b].map(x=>x+base).filter(sq=>{const p=before.b[sq];return p&&p.c===me&&(p.t==='n'||p.t==='b');}).length;
+    if(m.piece!=='p'&&m.piece!=='q'&&!home.includes(m.from)&&!m.captured&&sleeping>=2&&n<=8)return{kind:'ok',label:'A tip',text:G.twice};
+    if(n===1&&m.piece==='p'&&(m.from%8===3||m.from%8===4))return{kind:'good',label:'Great start',text:'Great start! A pawn in the center.'};
+    if((m.piece==='n'||m.piece==='b')&&home.includes(m.from)&&n<=6&&n%2)return{kind:'good',label:'Good',text:['A new piece joins the game. Good!','Developing! That piece is awake now.','Nice, another piece in the game.'][n%3]};
+  }
+  if(n>=9&&!GM.castled&&!GM.warnedCastle&&kingSq(st,me)===base+4){GM.warnedCastle=true;return{kind:'missed',label:'Remember',text:'Remember to castle soon! Your king is still standing in the middle of the board.'};}
+  return null;
+}
+async function gameMove(m){
+  const my=run,before=st;sans.push(sanOf(st,m));doMove(m);renderMoves();renderInfo();clearArrow();marks('hint');
+  GM.childN++;phase='busy';updateButtons();
+  if(checkGameOver())return;
+  const c=childComment(m,before),credit=creditOpenings();
+  if(c){if(c.path)drawPath(c.path,'black');if(c.kind==='bad')sfx('bad');say(c.kind,c.label,c.text);}
+  if(credit){await wait(c?2500:200);if(my!==run)return;sfx('good');await say('bridge','Practice counted!',credit);}
+  await wait(c&&c.kind==='bad'?2200:600);if(my!==run)return;
+  computerMove();
+}
+async function computerMove(){
+  const my=run;phase='busy';updateButtons();$('talkState').textContent='Thinking';
+  await wait(350);if(my!==run)return;
+  const m=bookMove()||bestMove(st,GM.level);if(my!==run||!m)return;
+  sans.push(sanOf(st,m));doMove(m);drawMovePath(m,'black');renderMoves();renderInfo();$('talkState').textContent='Ready';
+  if(checkGameOver())return;
+  const save=st;st={b:st.b,turn:me==='w'?'b':'w',cr:st.cr,ep:-1};const h=biggestLoss(-1);st=save;
+  if(h&&h.loss>=2&&GM.lastThreat!==h.from+'-'+h.sq){GM.lastThreat=h.from+'-'+h.sq;drawPath(N(h.from)+N(h.sq),'danger',300);say('missed','Watch out!',`Watch out! ${OPP}'s ${NAME[h.by]} is attacking your ${NAME[h.piece]} on ${N(h.sq)}.`);}
+  else if(inCheck(st))say('missed','Check!',"You're in check! Your king is attacked. Move it, block the check, or capture the attacker.");
+  phase='await';updateButtons();
+}
+function gameTakeBack(){
+  if(phase!=='await'&&!(phase==='done'&&GM&&GM.over))return;
+  let n=0;while(hist.length&&n<2){const last=hist[hist.length-1];undoMove();sans.pop();n++;if(last.st.turn===me)break;}
+  GM.childN=Math.max(0,GM.childN-1);GM.over=false;clearArrow();marks('hint');renderMoves();phase='await';updateButtons();renderInfo();
+  say('intro','Take back','No problem, everyone needs a second try sometimes. Your move again!');
+}
+function gameAdvice(show){
+  if(phase!=='await')return;const m=bestMove(st,'tricky');if(!m)return;
+  clearArrow();
+  if(show){drawMovePath(m,'move');say('watch','A good move',`Here's a good idea: move your ${NAME[m.piece]} along the orange path. Do you see why it helps?`);return;}
+  marks('hint',[m.from]);
+  const castle=legal(st).some(x=>x.castle)&&!GM.castled;
+  say('mission','Advice',(castle?'Can you castle now? Your king would love to be safe. ':'')+`Here's a clue: think about your ${NAME[m.piece]} on ${N(m.from)}. Is anything attacked? Is a piece still asleep?`);
+}
+
+/* ---------------- Mode switching, controls and home tabs ---------------- */
+const CTL={
+  lesson:{repeat:['Repeat','hear it again'],play:['Play','show me the move'],deep:['Go deeper','tell me more'],hint:'Hint',restart:'Start over'},
+  puzzle:{repeat:['Repeat','hear it again'],play:['Show answer','I give up'],deep:['Explain','tell me more'],hint:'Hint',restart:'Skip'},
+  game:{repeat:['Repeat','hear it again'],play:['Show me','a good move'],deep:['Take back','undo my move'],hint:'Advice',restart:'New game'}
+};
+function setControls(){
+  const c=CTL[mode];
+  const lab=(id,[b,s])=>{const el=$(id);el.querySelector('b').textContent=b;el.querySelector('small').textContent=s;};
+  lab('repeatBtn',c.repeat);lab('playBtn',c.play);lab('deepBtn',c.deep);
+  if(mode==='puzzle'&&phase==='solved')lab('playBtn',['Next puzzle','keep going']);
+  const hb=$('hintBtn');hb.lastChild.textContent=c.hint;
+  const rb=$('restartBtn');rb.lastChild.textContent=c.restart;rb.setAttribute('aria-label',c.restart);rb.title=c.restart;
+  $('stage').dataset.mode=mode;
+}
+function showStage(m){
+  mode=m;document.body.classList.add('lesson');$('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);setControls();
+}
+function showTab(t){
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));
+  ['lessons','puzzles','play','progress'].forEach(x=>$('tab-'+x).hidden=x!==t);
+  if(t==='lessons')renderCards();if(t==='puzzles')renderPuzzleHub();if(t==='play')renderPlay();if(t==='progress')renderProgress();
+  try{localStorage.setItem('oq-tab',t);}catch(e){}
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function renderPuzzleHub(){
+  const due=dueReview(),solved=Object.values(P.puzzles).filter(r=>r.solved).length;
+  const el=$('tab-puzzles');el.innerHTML='';
+  const top=document.createElement('div');top.className='hubrow';
+  top.innerHTML=`<button class="bigtile accent" id="pzReview" type="button"${due.length?'':' disabled'}><strong>Daily review</strong><span>${due.length?due.length+' puzzles waiting for you today':'All caught up! Practise a lesson to unlock more.'}</span></button>
+  <button class="bigtile" id="pzTraps" type="button"><strong>Opening traps</strong><span>${TRAPS.length} famous tricks, and how to stop them</span></button>
+  <div class="bigtile stat"><strong>${solved}</strong><span>puzzles solved on the first try</span></div>`;
+  el.appendChild(top);
+  const h=document.createElement('h3');h.className='hubh';h.textContent='Puzzles from each opening';el.appendChild(h);
+  const g=document.createElement('div');g.className='chips';
+  ORDER.forEach(id=>{const ps=lessonPuzzles(id),done=ps.filter(p=>P.puzzles[p.id]&&P.puzzles[p.id].solved).length;
+    const b=document.createElement('button');b.className='chipcard';b.type='button';
+    b.innerHTML=`<strong>${LESSONS[id].name}</strong><span>${done} / ${ps.length} solved</span><i style="--w:${Math.round(done/ps.length*100)}%"></i>`;
+    b.onclick=()=>startPuzzles(ps,LESSONS[id].name);g.appendChild(b);});
+  el.appendChild(g);
+  $('pzReview').onclick=()=>startPuzzles(dueReview(),'Daily review');
+  $('pzTraps').onclick=()=>startPuzzles(TRAPS.slice(),'Opening traps');
+}
+let playOpts={color:'w',level:'gentle',lesson:''};
+function renderPlay(){
+  const el=$('tab-play');
+  const opts=ORDER.filter(id=>playOpts.color==='r'||LESSONS[id].color===playOpts.color).map(id=>`<option value="${id}"${playOpts.lesson===id?' selected':''}>${LESSONS[id].name}</option>`).join('');
+  el.innerHTML=`<div class="playcard">
+    <div class="gp big" aria-hidden="true">${GP_SVG}</div>
+    <div class="playform">
+      <h3>Play a real game with Grandpa Rook</h3>
+      <p>Use your opening ideas in a whole game. Grandpa gives tips as you play, and playing a full opening from your lessons counts as practice.</p>
+      <div class="field"><span>I want to play</span><div class="seg" role="group" aria-label="Colour">${[['w','White'],['b','Black'],['r','Surprise me']].map(([v,t])=>`<button type="button" data-k="color" data-v="${v}" aria-pressed="${playOpts.color===v}">${t}</button>`).join('')}</div></div>
+      <div class="field"><span>Computer</span><div class="seg" role="group" aria-label="Level">${[['gentle','Gentle'],['tricky','Tricky']].map(([v,t])=>`<button type="button" data-k="level" data-v="${v}" aria-pressed="${playOpts.level===v}">${t}</button>`).join('')}</div></div>
+      <div class="field"><label for="playLesson">Practise an opening</label><select id="playLesson" class="voicesel"><option value="">Any opening</option>${opts}</select></div>
+      <button class="startbtn" id="startGame" type="button">Start the game</button>
+    </div></div>`;
+  el.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{playOpts[b.dataset.k]=b.dataset.v;if(b.dataset.k==='color')playOpts.lesson='';renderPlay();});
+  $('playLesson').onchange=e=>playOpts.lesson=e.target.value;
+  $('startGame').onclick=()=>{const o=Object.assign({},playOpts);if(o.lesson)o.color=LESSONS[o.lesson].color;startGame(o);};
+}
+function renderProgress(){
+  const el=$('tab-progress'),reps=ORDER.reduce((a,id)=>a+repsOf(id),0),mastered=ORDER.filter(id=>repsOf(id)>=GOAL).length;
+  const solved=Object.values(P.puzzles).filter(r=>r.solved).length,g=P.games;
+  const next=ORDER.slice().sort((a,b)=>repsOf(a)-repsOf(b)||((P.lessons[a]||{}).last||'').localeCompare((P.lessons[b]||{}).last||''))[0];
+  el.innerHTML=`<div class="tiles">
+    <div class="tile"><strong>${reps}</strong><span>practices done</span></div>
+    <div class="tile"><strong>${streak()}</strong><span>day streak</span></div>
+    <div class="tile"><strong>${mastered} / ${ORDER.length}</strong><span>openings mastered</span></div>
+    <div class="tile"><strong>${solved}</strong><span>puzzles solved</span></div>
+    <div class="tile"><strong>${g.won}–${g.drawn}–${g.lost}</strong><span>games won, drawn, lost</span></div>
+  </div>
+  <div class="nextup"><span>Practise next</span><strong>${LESSONS[next].name}</strong><button class="chip-btn" type="button" id="goNext">Start</button></div>
+  <p class="note">Practise each opening ${GOAL} times to become a Master: Learning at 1, Practising at 3, Strong at 6, Master at ${GOAL}. Progress is saved on this device.</p>
+  <div class="replist">${ORDER.map(id=>{const r=P.lessons[id]||{reps:0,best:0,last:null},l=LESSONS[id];
+    return `<div class="reprow"><div class="rn"><strong>${l.name}</strong><span class="tag ${l.color}">${l.color==='w'?'White':'Black'}</span></div>
+    <div class="bar" role="img" aria-label="${r.reps} of ${GOAL} practices"><i style="--w:${Math.min(100,r.reps/GOAL*100)}%"></i></div>
+    <div class="rm"><b>${r.reps}×</b> ${levelOf(r.reps)}${r.best?` · best ★${r.best}`:''}${r.last?` · last ${r.last}`:''}</div></div>`;}).join('')}</div>`;
+  $('goNext').onclick=()=>startLesson(next);
+}
+
+let lastGame=null;
+const curTab=()=>{let t=null;try{t=localStorage.getItem('oq-tab');}catch(e){}return['lessons','puzzles','play','progress'].includes(t)?t:'lessons';};
+// Carry over stars saved by the older version as one practice each.
+ORDER.forEach(id=>{let v=null;try{v=localStorage.getItem('oq-done-'+id);}catch(e){}if(v!==null&&!P.lessons[id]){P.lessons[id]={reps:1,best:+v||0,last:null,games:0};saveP();}});
+
 const mq=matchMedia('(max-width:900px)'),minis=document.querySelector('.minibtns');
 function placeButtons(){
   if(mq.matches){document.querySelector('.controls').appendChild($('hintBtn'));$('stars').after($('restartBtn'));}
   else{minis.append($('hintBtn'),$('restartBtn'));}
 }
 mq.addEventListener?mq.addEventListener('change',placeButtons):mq.addListener(placeButtons);placeButtons();
-renderVoiceBtn();buildGrid();renderCards();updateButtons();
+renderVoiceBtn();buildGrid();showTab(curTab());updateButtons();
 </script>
 </body>
 </html>

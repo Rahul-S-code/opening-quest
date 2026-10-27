@@ -257,6 +257,9 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 @media (max-width:370px){body.lesson .ctl svg,body.lesson .controls .chip-btn svg{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+.lvlh{grid-column:1/-1;font-size:16px;margin:6px 0 -4px;display:flex;align-items:baseline;gap:10px}
+.lvlh span{font-family:var(--f-body);font-size:13px;font-weight:700;color:var(--muted)}
+.lvlh:first-child{margin-top:0}
 /* Home tabs, puzzles, play and progress */
 .tabs{display:flex;gap:6px;background:var(--surface);border-radius:999px;padding:5px;box-shadow:var(--shadow);overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -1595,13 +1598,15 @@ function miniBoard(l){
 }
 function renderCards(){
   $('cardsW').innerHTML='';$('cardsB').innerHTML='';
+  const LV={1:'Starter',2:'Explorer',3:'Adventurer'};
+  [1,2,3].forEach(lv=>['w','b'].forEach(c=>{if(ORDER.some(id=>LESSONS[id].color===c&&(LESSONS[id].lvl||1)===lv))$(c==='b'?'cardsB':'cardsW').insertAdjacentHTML('beforeend',`<h4 class="lvlh" data-lv="${lv}">${LV[lv]}<span>${['','first openings to learn','new ideas and plans','sharp, tricky and brave'][lv]}</span></h4>`);}));
   ORDER.forEach(id=>{
     const l=LESSONS[id],open=l.steps.filter(s=>!s.plan).length,b=document.createElement('button');
     const r=P.lessons[id]||{reps:0,best:0};
     b.className='card';b.type='button';
     b.innerHTML=`${miniBoard(l)}<span><strong>${l.name}</strong><span class="tg">${l.tag}</span><span class="meta"><span class="tag ${l.color}">${l.color==='w'?'White':'Black'}</span><span class="tag">${open} missions + ${l.steps.length-open} plan moves</span>${r.reps?`<span class="tag done">★ ${r.best}/${l.steps.length}</span>`:''}<span class="tag lvl">${r.reps?`Practised ${r.reps}× · ${levelOf(r.reps)}`:'Not started'}</span></span><span class="bar" aria-hidden="true"><i style="--w:${Math.min(100,r.reps/GOAL*100)}%"></i></span></span>`;
     b.onclick=()=>startLesson(id);
-    $(l.color==='b'?'cardsB':'cardsW').appendChild(b);
+    const box=$(l.color==='b'?'cardsB':'cardsW'),hs=[...box.querySelectorAll('.lvlh')],nx=hs.find(x=>+x.dataset.lv>(l.lvl||1));box.insertBefore(b,nx||null);
   });
 }
 
@@ -1616,6 +1621,607 @@ function confetti(){
     if(++t<150)requestAnimationFrame(f);else{x.clearRect(0,0,c.width,c.height);c.hidden=true;}})();
 }
 
+/*@@CONTENT3@@*/
+/* ---------------- Compact lesson format for the big opening library ----------------
+   Each step: m (your move), r (reply), i (idea), g (mission), y (why it's good),
+   x (what you'd miss), t (reply text), d (go deeper), p (plan move),
+   gl (squares to glow), sh (idea paths), rs (reply paths), ok / w (curated answers). */
+function defLesson(id,meta,steps){
+  let s=startState();
+  const seq=meta.first?[meta.first]:[];
+  if(meta.first){const f=legal(s).find(m=>N(m.from)+N(m.to)===meta.first);meta.firstSan=sanOf(s,f);s=make(s,f);}
+  const out=steps.map(x=>{
+    const mv=legal(s).find(m=>N(m.from)+N(m.to)===x.m);if(!mv)throw new Error(id+': illegal '+x.m);
+    const st={m:x.m,san:sanOf(s,mv),r:x.r||null,rsan:'',glow:x.gl||[],idea:x.i,goal:x.g,yes:x.y,deeper:x.d,missed:x.x,
+      replyText:x.t||'',show:x.sh||[],rshow:x.rs||[],ok:x.ok||{},wrong:x.w||{}};
+    if(x.p)st.plan=true;
+    s=make(s,mv);
+    if(x.r){const rv=legal(s).find(m=>N(m.from)+N(m.to)===x.r);if(!rv)throw new Error(id+': illegal reply '+x.r);st.rsan=sanOf(s,rv);s=make(s,rv);}
+    return st;
+  });
+  LESSONS[id]=Object.assign({},meta,{steps:out});
+  if(!ORDER.includes(id))ORDER.push(id);
+}
+
+/* ================= Batch 1 ================= */
+defLesson('fourknights',{name:'Four Knights Game',tag:'Knights first, always',color:'w',lvl:1,
+  intro:"Welcome to the Four Knights Game! It's the friendliest opening in chess: both sides bring out their knights, one, two, three, four! It's perfect for learning the rules of a good opening. Let's go!",
+  outro:"Bravo! You played the Four Knights and a master plan after it. Every piece came out, your king is safe, and you built a strong center.",
+  finalDeeper:"The Four Knights teaches the golden rules: center pawn, knights, bishops, castle. Then the plan: pin a piece, give your opponent doubled pawns, and push d4 when you're ready.",
+  summary:['Knights before bishops','Copy-cat moves can be fine','Pin to the queen','Prepare d4 with care']},[
+  {m:'e2e4',r:'e7e5',i:'Grab the center',gl:['e4','d4','e5','d5'],
+   g:"Mission one: the four squares in the middle of the board are the most important. Which pawn can step into the center and open doors for your pieces?",
+   y:"Wonderful! Your pawn on e4 grabs the center and opens roads for your queen and bishop.",
+   x:"This turn was your chance to put a pawn in the middle and open roads for your pieces.",
+   t:"Black copies you with a pawn to e5.",
+   d:"A pawn in the center is like a flag on the hill. It controls squares your opponent wants, and it lets your bishop and queen out."},
+  {m:'g1f3',r:'b8c6',i:'Knights first',sh:['f3e5'],
+   g:"Mission two: Black's pawn on e5 is in the center too. Which knight can jump out and attack it?",
+   y:"Hop! Your knight on f3 attacks e5 and guards the center. Knights love the middle.",
+   x:"This turn was your chance to bring a knight out with a threat.",
+   t:"Black's knight jumps to c6 to protect the pawn.",
+   d:"Knights are slow, so we bring them out early. On f3 the knight also guards your king side, ready for castling."},
+  {m:'b1c3',r:'g8f6',i:'Wake up every piece',sh:['c3d5','c3e4'],
+   g:"Mission three: your e4 pawn needs a friend to guard it. Can your other knight jump out and help?",
+   y:"Two knights out! Your knight on c3 guards e4 and looks at d5. That's why it's called the Four Knights.",
+   x:"This turn was your chance to bring your second knight out and protect your center pawn.",
+   t:"Black brings out the fourth knight. Four knights on the board!",
+   d:"Both sides played the same moves, and that's fine. Now the bishops come out next, and the fight begins."},
+  {m:'f1b5',r:'f8b4',i:'Pin and pressure',sh:['b5c6'],
+   g:"Mission four: your light-squared bishop wants a job. Find a square where it puts pressure on Black's knight on c6.",
+   y:"Excellent! Your bishop on b5 presses on the knight that guards e5. And now you can castle next move.",
+   x:"This turn was your chance to bring out your bishop with pressure, and get ready to castle.",
+   t:"Black copies you again! The bishop on b4 presses on your knight.",
+   d:"The knight on c6 protects e5. If you ever capture it, e5 loses its guard. That's pressure: it makes Black think every move."},
+  {m:'e1g1',r:'e8g8',i:'Castle early',gl:['g1'],
+   g:"Mission five: your knight and bishop have left the king side. Time to tuck your king away safely!",
+   y:"Castled! Your king hides in the corner and your rook comes to the middle.",
+   x:"This turn was your chance to castle. Your king is safer in the corner than in the middle.",
+   t:"Black castles too. Both kings are safe.",
+   d:"Castle before the fight starts. An uncastled king in the middle can get attacked when the center opens."},
+  {m:'d2d3',r:'d7d6',i:'Open the road for the bishop',sh:['c1g5'],
+   g:"Mission six: your bishop on c1 is still asleep behind a pawn. Which small pawn step opens its road and guards e4 too?",
+   y:"Two jobs in one! The pawn on d3 guards e4 and opens the road for your dark-squared bishop.",
+   x:"This turn was your chance to wake up your last bishop and protect e4 at the same time.",
+   t:"Black does the same with a pawn on d6.",
+   d:"A pawn on d3 is humble, but solid. Your center can't be broken, and every piece can now come out."},
+  {m:'c1g5',r:'b4c3',i:'Pin to the queen',p:1,sh:['g5f6','~f6d8'],
+   g:"Plan move one: your bishop is awake. Black's knight on f6 stands right in front of the queen. Can your bishop pin it?",
+   y:"A pin! If Black's knight moves, your bishop sees all the way to the queen on d8.",
+   x:"This was the moment to pin Black's knight to the queen.",
+   t:"Black takes your knight with the bishop. Now you must recapture!",
+   d:"A pinned piece is stuck. Pins on the knight in front of the queen are very common, and they make Black's whole king side uneasy."},
+  {m:'b2c3',r:'d8e7',i:'Recapture toward the center',p:1,
+   g:"Plan move two: Black took your knight on c3. Take back with a pawn that moves toward the center.",
+   y:"Good! Now you have the two bishops, and your c3 pawn will help you push d4 later.",
+   x:"Your piece was captured! Always take back first.",
+   t:"Black's queen steps to e7 to get out of the pin.",
+   d:"Two bishops together are very strong in open positions. Black has two knights instead. Opening the center will help your bishops."},
+  {m:'f1e1',r:'c6d8',i:'Rooks to the center',p:1,sh:['e1e4'],
+   g:"Plan move three: your rook on f1 isn't doing much. Move it to the file where the center pawns are.",
+   y:"Rook to e1! It guards e4 and will be ready when the e-file opens.",
+   x:"This was the time to bring your rook to the center file.",
+   t:"Black's knight steps back to d8. It wants to come to e6.",
+   d:"Rooks love open files. Put them where the pawns will trade, so they're ready when the road opens."},
+  {m:'d3d4',r:'d8e6',i:'Strike in the center',p:1,sh:['d4e5'],
+   g:"Plan move four: everything is ready. Push a center pawn to attack e5 and open roads for your bishops.",
+   y:"Strike! Your pawn on d4 attacks e5 and your bishops will love the open lines.",
+   x:"This was the moment to push in the center and open lines for your two bishops.",
+   t:"Black's knight jumps to e6 and attacks your bishop on g5.",
+   d:"With two bishops you want an open center. d4 starts that, and your rook on e1 is ready behind it."}
+]);
+
+defLesson('vienna',{name:'Vienna Game',tag:'Sneaky knight, sneaky bishop',color:'w',lvl:2,
+  intro:"Welcome to the Vienna Game! Instead of the usual knight to f3, we bring out the other knight first. It keeps your f-pawn free and gives you surprise options. Let's go!",
+  outro:"Splendid! You played the Vienna and then hunted Black's best bishop. Now you have two bishops and a strong position.",
+  finalDeeper:"The Vienna keeps flexible: knight to c3 first, bishop to c4, then d3 and castle. Your plan was to trade your knight for Black's strong bishop, which gave you the bishop pair.",
+  summary:['Develop the queen-side knight first','Keep the f-pawn free','Hunt the strong bishop','Win the bishop pair']},[
+  {m:'e2e4',r:'e7e5',i:'Grab the center',gl:['e4','d4','e5','d5'],
+   g:"Mission one: start by grabbing the center with a pawn. Which pawn opens roads for your queen and bishop?",
+   y:"Great start! The e4 pawn takes the center and opens two roads.",
+   x:"This turn was your chance to put a pawn in the center.",t:"Black answers with a pawn to e5.",
+   d:"In the Vienna we fight for the center with pieces too, not just pawns."},
+  {m:'b1c3',r:'g8f6',i:'Knights first',sh:['c3d5'],
+   g:"Mission two: here's the Vienna surprise! Bring out the knight from the queen side, where it guards e4 and looks at d5.",
+   y:"That's the Vienna! Your knight guards e4 and your f-pawn is still free to move later.",
+   x:"This turn was your chance to bring out a knight toward the center. The Vienna uses the queen-side knight first.",
+   ok:{g1f3:"A great move in many openings! But the Vienna brings the other knight out first, so your f-pawn stays free."},
+   t:"Black's knight comes to f6 and attacks your e4 pawn.",
+   d:"Knight to c3 first means you could later push f4, like in the King's Gambit, but with your knight already out."},
+  {m:'f1c4',r:'b8c6',i:'Bishops on long roads',sh:['c4f7'],
+   g:"Mission three: your bishop can come out now. Which square aims it at Black's weakest spot, next to the king?",
+   y:"Bishop to c4! It stares at f7, the square only Black's king protects.",
+   x:"This turn was your chance to aim a bishop at Black's weak f7 square.",
+   t:"Black brings out the other knight.",
+   d:"The f7 square is a favourite target. Your bishop on c4 keeps it under watch all game long."},
+  {m:'d2d3',r:'f8c5',i:'Pawns make great bodyguards',
+   g:"Mission four: your e4 pawn could be captured by the knight on f6. Find a small pawn step that guards it and wakes up your other bishop.",
+   y:"Strong! d3 guards e4, and your dark-squared bishop can come out now.",
+   x:"This turn was your chance to guard your center pawn with a pawn and open a road for your bishop.",
+   t:"Black's bishop comes to c5 and aims at your f2 square.",
+   d:"A pawn defender never gets tired. It frees your knights and bishops to do other jobs."},
+  {m:'g1f3',r:'d7d6',i:'Wake up every piece',
+   g:"Mission five: one knight is still sleeping. Wake it up, and get ready to castle.",
+   y:"All four minor pieces are almost out! Now you can castle.",
+   x:"This turn was your chance to develop your last knight and get ready to castle.",
+   t:"Black plays d6 to support the center.",
+   d:"Count your pieces that are out. More pieces out means more power in the fight."},
+  {m:'e1g1',r:'e8g8',i:'Castle early',gl:['g1'],
+   g:"Mission six: the path is clear. Make your king safe!",
+   y:"Castled! King safe, rook ready.",x:"This turn was your chance to castle and keep your king safe.",
+   t:"Black castles too.",d:"Both sides are ready. Now it's time to make a plan."},
+  {m:'c3a4',r:'c5b6',i:'Hunt the strong bishop',p:1,sh:['a4c5'],
+   g:"Plan move one: Black's bishop on c5 is Black's best piece. Can your knight jump to the edge to attack it?",
+   y:"The hunt is on! Your knight attacks the bishop. Usually knights don't like the edge, but here it has a big job.",
+   x:"This was the moment to go after Black's best bishop.",
+   t:"Black's bishop steps back to b6.",
+   d:"Sometimes a knight on the rim is fine, if it does something important. Here it chases the best piece Black has."},
+  {m:'a4b6',r:'a7b6',i:'Win the bishop pair',p:1,
+   g:"Plan move two: the bishop is still in reach. Trade your knight for it!",
+   y:"Got it! Black's strong bishop is gone, and you have two bishops left.",
+   x:"This was the time to trade your knight for Black's best bishop.",
+   t:"Black takes back with a pawn.",
+   d:"A knight for a bishop is an even trade, but two bishops together get stronger as the board opens up."},
+  {m:'c2c3',r:'c8e6',i:'Make a hideout',p:1,
+   g:"Plan move three: Black wants to trade off your strong bishop on c4. Give it a pawn step so it has a safe hideout.",
+   y:"Clever! Now your bishop can drop back to b3 or c2, and c3 also prepares d4.",
+   x:"This was the time to give your bishop a safe retreat.",
+   t:"Black's bishop comes to e6 to challenge your bishop.",
+   d:"Good players make room for their pieces before they get chased. Then they never get trapped."},
+  {m:'c4b3',r:'h7h6',i:'Keep your best pieces',p:1,
+   g:"Plan move four: Black wants to trade bishops. Step back and keep your bishop on the same diagonal.",
+   y:"You kept your bishop pair! It still aims at f7 from b3.",
+   x:"This was the time to keep your bishop and avoid the trade.",
+   t:"Black makes an escape square for the king with h6.",
+   d:"When you have the two bishops, avoid trading them. Each one is a long-range rocket."}
+]);
+
+defLesson('evans',{name:'Evans Gambit',tag:'Give a pawn, grab the center',color:'w',lvl:3,
+  intro:"Welcome to the Evans Gambit! A gambit means you give away a pawn on purpose, to get something better: speed and a big center. It's a brave, exciting opening. Ready to be brave?",
+  outro:"Magnificent! You played a real gambit. You gave a pawn and got a huge center, fast pieces, and Black's king stuck in the middle.",
+  finalDeeper:"In a gambit you trade material for time. Every move you gain lets you develop and attack. Your plan was to open the center and stop Black's king from castling with Ba3 and Re1.",
+  summary:['A gambit trades a pawn for time','Gain tempo by attacking','Build a big center','Stop the king from castling','Pin along open files']},[
+  {m:'e2e4',r:'e7e5',i:'Grab the center',gl:['e4','d4','e5','d5'],g:"Mission one: grab the center with a pawn.",y:"Great start!",x:"This turn was your chance to put a pawn in the center.",t:"Black answers with e5.",d:"Every good opening fights for the middle."},
+  {m:'g1f3',r:'b8c6',i:'Knights first',sh:['f3e5'],g:"Mission two: bring out a knight that attacks Black's pawn.",y:"Hop! Your knight attacks e5.",x:"This turn was your chance to bring out a knight with a threat.",t:"Black defends with the knight.",d:"Attacking while developing saves time."},
+  {m:'f1c4',r:'f8c5',i:'Bishops on long roads',sh:['c4f7'],g:"Mission three: aim your bishop at Black's weakest square, f7.",y:"The Italian bishop! It stares at f7.",x:"This turn was your chance to aim a bishop at f7.",t:"Black's bishop comes to c5. Now the gambit can begin!",d:"So far it's the Italian Game. Next comes the surprise."},
+  {m:'b2b4',r:'c5b4',i:'Gambit a pawn for time',sh:['b4c5'],
+   g:"Mission four: here's the Evans surprise! Push a pawn on the queen side to attack Black's bishop, even though it can be captured.",
+   y:"The Evans Gambit! You offer the b-pawn. If Black takes it, you get time to build a huge center.",
+   x:"This turn was your chance to play the brave gambit: offer a pawn to attack the bishop.",
+   ok:{c2c3:"That's the normal Italian plan, a great move! But for the Evans Gambit, offer a pawn first."},
+   t:"Black takes the pawn with the bishop. Now let's use our time!",
+   d:"After Bxb4 Black is a pawn up. But Black's bishop has moved twice, and you'll attack it again with tempo."},
+  {m:'c2c3',r:'b4a5',i:'Attack with tempo',sh:['c3b4'],
+   g:"Mission five: attack the bishop again with a pawn, and help prepare a big center push.",
+   y:"Tempo! The bishop must run again, and your pawn on c3 supports d4.",
+   x:"This turn was your chance to attack the bishop and prepare the center at the same time.",
+   t:"Black's bishop runs to a5.",
+   d:"Each time Black's bishop has to move, you get a free move. That's how a gambit pays you back."},
+  {m:'d2d4',r:'e5d4',i:'Build a big center',sh:['d4e5'],
+   g:"Mission six: now push for the big center! Which pawn strikes Black's e5 pawn?",
+   y:"Boom! Your pawns charge into the center and your bishop on c1 wakes up.",
+   x:"This turn was your chance to strike the center with a pawn, which was the whole point of the gambit.",
+   t:"Black captures in the center.",
+   d:"You don't need to take back right away. First make your king safe, then win the pawn back."},
+  {m:'e1g1',r:'g8e7',i:'Castle early',gl:['g1'],
+   g:"Mission seven: the center is opening. Before the fight, make your king safe!",
+   y:"Castled! Now your rook can join the attack.",
+   x:"This turn was your chance to castle before the center opens.",
+   t:"Black brings the knight to e7 to help defend.",
+   d:"With the center opening, a king in the middle is in danger. Yours is safe now, but Black's isn't yet."},
+  {m:'c3d4',r:'d7d5',i:'Win the pawn back',p:1,
+   g:"Plan move one: time to take back in the center. Which pawn captures toward the middle?",
+   y:"Now you have two pawns side by side in the center. A beautiful pawn duo!",
+   x:"This was the time to take a center pawn back.",
+   t:"Black strikes back with d5 and attacks your bishop.",
+   d:"Pawns on d4 and e4 side by side control four squares in Black's half. That's a strong center."},
+  {m:'e4d5',r:'e7d5',i:'Trade in the center',p:1,
+   g:"Plan move two: Black's pawn attacks your bishop. Take it!",
+   y:"Capture! Now the e-file is open toward Black's king.",
+   x:"Your bishop was attacked. This was the time to capture.",
+   t:"Black's knight takes back on d5.",
+   d:"Opening the e-file is good for you, because your king is castled and Black's isn't."},
+  {m:'c1a3',r:'c8e6',i:'Stop the king from castling',p:1,sh:['a3f8'],
+   g:"Plan move three: Black's king wants to castle. Can your dark-squared bishop aim at the square the king needs to pass through?",
+   y:"Sneaky! Your bishop on a3 watches f8. Black's king can't castle on that side now!",
+   x:"This was the time to stop Black's king from castling.",
+   t:"Black develops the bishop to e6.",
+   d:"A king can't castle through a square that's attacked. Bishop to a3 keeps Black's king stuck in the middle."},
+  {m:'f1e1',r:'d8d7',i:'Pin along open files',p:1,sh:['e1e8'],
+   g:"Plan move four: the e-file is open, and Black's king is still on it. Put your rook there!",
+   y:"A pin! Black's bishop on e6 is stuck, because your rook sees the king behind it.",
+   x:"This was the time to bring your rook onto the open file with the enemy king.",
+   t:"Black's queen comes to d7 to protect the bishop.",
+   d:"Rooks on open files facing an uncastled king are dangerous. Black will have a hard time untangling."}
+]);
+
+defLesson('bishops',{name:"Bishop's Opening",tag:'Bishop out first, aim at f7',color:'w',lvl:2,
+  intro:"Welcome to the Bishop's Opening! You bring your bishop out very early and aim it at Black's weak spot. Then you build a calm, strong position. Let's start!",
+  outro:"Well played! You used the Bishop's Opening and a patient plan: a hideout for your bishop, a rook in the center, and knights heading for great squares.",
+  finalDeeper:"The Bishop's Opening is quiet but sneaky. Your bishop pressures f7 the whole game. Your plan made room for it with c3, then moved it to c2 when Black tried to chase it.",
+  summary:['Bishop out early','Guard the center with a pawn','Retreat before you get chased','Knights reroute to better squares']},[
+  {m:'e2e4',r:'e7e5',i:'Grab the center',gl:['e4','d4','e5','d5'],g:"Mission one: grab the center with a pawn.",y:"Great start!",x:"This turn was your chance to put a pawn in the center.",t:"Black answers with e5.",d:"The e4 pawn opens a road for your bishop. Look at it: c4 is right there!"},
+  {m:'f1c4',r:'g8f6',i:'Bishops on long roads',sh:['c4f7'],
+   g:"Mission two: in this opening your bishop comes out first! Aim it at Black's weakest square next to the king.",
+   y:"The Bishop's Opening! Your bishop stares at f7.",x:"This turn was your chance to bring the bishop out and aim it at f7.",
+   ok:{g1f3:"A great move! But in the Bishop's Opening, the bishop comes out first."},
+   t:"Black's knight jumps to f6 and attacks your e4 pawn.",d:"Bringing the bishop out first keeps your knight and f-pawn flexible."},
+  {m:'d2d3',r:'c7c6',i:'Pawns make great bodyguards',
+   g:"Mission three: your e4 pawn is attacked. Guard it with a small pawn step that also wakes your other bishop.",
+   y:"Solid! The pawn on d3 guards e4.",x:"Your center pawn was attacked! This turn was your chance to guard it with a pawn.",
+   t:"Black plays c6. Black wants to push d5 and chase your bishop.",d:"Watch Black's plan: c6 then d5 attacks your bishop. You'll be ready."},
+  {m:'g1f3',r:'f8e7',i:'Wake up every piece',
+   g:"Mission four: bring out your king-side knight and get ready to castle.",
+   y:"Knight out! It attacks e5 and guards your king.",x:"This turn was your chance to develop your knight and prepare to castle.",
+   t:"Black brings the bishop to e7.",d:"Knights belong on f3 and c3 in most openings."},
+  {m:'e1g1',r:'d7d6',i:'Castle early',gl:['g1'],g:"Mission five: the road is clear. Castle!",y:"Castled! King safe.",x:"This turn was your chance to castle.",t:"Black plays d6.",d:"Castle early, then think about plans."},
+  {m:'c4b3',r:'e8g8',i:'Retreat before you get chased',
+   g:"Mission six: Black's pawns on c6 and d6 want to push d5 and chase your bishop. Can your bishop step back now, on the same diagonal?",
+   y:"Smart! Your bishop still aims at f7 from b3, and the d5 push won't chase it anymore.",
+   x:"This turn was your chance to move your bishop away before Black's pawn chases it.",
+   t:"Black castles.",d:"Moving a piece before it gets attacked is called prophylaxis. Big word, simple idea: stop the threat before it happens!"},
+  {m:'c2c3',r:'b8d7',i:'Make a hideout',p:1,
+   g:"Plan move one: give your bishop an even safer hideout, and prepare to push d4 later.",
+   y:"Now your bishop can drop to c2, and your pawns are ready for d4.",x:"This was the time to make room with a pawn.",t:"Black's knight comes to d7.",d:"c3 is a helper move: it opens c2 for the bishop and supports d4."},
+  {m:'f1e1',r:'d7c5',i:'Rooks to the center',p:1,
+   g:"Plan move two: put your rook on the e-file to guard e4.",y:"Rook to e1! It guards e4.",x:"This was the time to bring your rook to the center.",t:"Black's knight jumps to c5 and attacks your bishop on b3!",d:"Rooks are happiest in the center files."},
+  {m:'b3c2',r:'c8g4',i:'Use your hideout',p:1,
+   g:"Plan move three: your bishop is attacked by the knight. Use the hideout you made!",
+   y:"Safe in the hideout! Your bishop is still on a great diagonal.",x:"Your bishop was attacked. This was the time to use the hideout.",
+   t:"Black's bishop pins your knight to your queen.",d:"See how c3 paid off? Planning ahead saves pieces."},
+  {m:'b1d2',r:'c5e6',i:'Knights reroute',p:1,
+   g:"Plan move four: your last knight is still home. Bring it out to a square where it protects your other knight.",
+   y:"All pieces are out! The knight on d2 can later go to f1 and g3.",x:"This was the time to wake up your last sleeping piece.",
+   t:"Black's knight hops to e6.",d:"Knights in this structure travel d2, f1, g3. A long trip, but they end up on a great square."}
+]);
+
+defLesson('colle',{name:'Colle System',tag:'Quiet build-up, sudden strike',color:'w',lvl:1,
+  intro:"Welcome to the Colle System! You build the same strong setup almost every game: pawns on d4 and e3, pieces out, castle. Then you strike with e4! It's easy to learn and very powerful.",
+  outro:"Superb! You built the Colle setup and then struck with e4, just like the masters do. Your pieces are free and the center is yours.",
+  finalDeeper:"The Colle is a system: you play the same moves against almost anything. The magic move is e4, which you prepare with Nbd2 and then push to open lines for your pieces.",
+  summary:['Same setup every game','Pawn triangle on c3, d4, e3','Prepare the e4 break','Open lines when your pieces are ready']},[
+  {m:'d2d4',r:'d7d5',i:'Grab the center',gl:['d4','e4','d5','e5'],g:"Mission one: start with the queen's pawn in the center.",y:"Great start! d4 is guarded by your queen.",x:"This turn was your chance to put a center pawn forward.",t:"Black answers with d5.",d:"d4 is protected by the queen, so it's very safe."},
+  {m:'g1f3',r:'g8f6',i:'Knights first',g:"Mission two: bring out your king-side knight.",y:"Knight out!",x:"This turn was your chance to develop a knight.",t:"Black's knight comes out too.",d:"The knight on f3 stops Black from pushing e5."},
+  {m:'e2e3',r:'e7e6',i:'Open the road for the bishop',sh:['f1d3'],
+   g:"Mission three: your light-squared bishop is trapped. Which small pawn step opens its road?",
+   y:"e3 opens the bishop's road and makes your center strong.",x:"This turn was your chance to open a road for your bishop.",
+   t:"Black does the same with e6.",d:"In the Colle, the e-pawn goes only one step for now. It will jump to e4 later!"},
+  {m:'f1d3',r:'c7c5',i:'Bishops on long roads',sh:['d3h7'],
+   g:"Mission four: bring your bishop out to a square where it aims at Black's king side.",
+   y:"Bishop to d3! It aims all the way at h7, near Black's future castle.",x:"This turn was your chance to put your bishop on its best diagonal.",
+   t:"Black strikes with c5 to attack your d4 pawn.",d:"The Colle bishop on d3 is a monster. When the center opens, it attacks h7."},
+  {m:'c2c3',r:'b8c6',i:'Pawns make great bodyguards',
+   g:"Mission five: Black's c5 pawn attacks d4. Guard it with a pawn and finish your pawn triangle.",
+   y:"Triangle! Pawns on c3, d4 and e3 make a solid wall.",x:"Your d4 pawn was attacked. This turn was your chance to guard it with a pawn.",
+   t:"Black's knight comes to c6 to attack d4 again.",d:"The pawn triangle is the Colle's foundation. It's very hard for Black to break."},
+  {m:'b1d2',r:'f8d6',i:'Prepare the strike',sh:['d2e4'],
+   g:"Mission six: bring out your last knight to a square where it supports the e4 push later.",
+   y:"Knight to d2! It guards e4, so you can push there soon.",x:"This turn was your chance to bring out your knight in a way that prepares e4.",
+   t:"Black's bishop comes to d6.",d:"Nbd2 looks strange, but it's the key to the Colle. It backs up the e4 push."},
+  {m:'e1g1',r:'e8g8',i:'Castle early',gl:['g1'],g:"Mission seven: castle!",y:"Castled! The setup is complete.",x:"This turn was your chance to castle.",t:"Black castles too.",d:"Now your setup is ready. Time for the plan!"},
+  {m:'d4c5',r:'d6c5',i:'Trade at the right moment',p:1,
+   g:"Plan move one: before you push e4, take Black's pawn on c5. That pulls Black's bishop away.",
+   y:"Capture! Black's bishop has to move again to take back.",x:"This was the time to capture on c5.",t:"Black's bishop takes back on c5.",d:"Taking on c5 clears d4 for your pieces and makes e4 stronger."},
+  {m:'e3e4',r:'d8c7',i:'Strike in the center',p:1,sh:['e4d5'],
+   g:"Plan move two: here's the Colle strike! Push the pawn you prepared with your knight.",
+   y:"Strike! e4 opens the center for your bishop and knights.",x:"This was the moment for the e4 strike.",t:"Black's queen comes to c7.",d:"The e4 push opens lines while Black is still a bit behind in the center."},
+  {m:'d1e2',r:'d5e4',i:'Guard the center',p:1,
+   g:"Plan move three: guard e4 with your queen, and connect your rooks.",
+   y:"The queen guards e4, and your rooks can see each other now.",x:"This was the time to support your center with the queen.",t:"Black captures on e4.",d:"Connected rooks protect each other and can go to any file."},
+  {m:'d2e4',r:'f6e4',i:'Trade in the center',p:1,g:"Plan move four: take back on e4 with a knight.",y:"Recaptured! Your pieces are very active.",x:"Your pawn was captured. Take back!",t:"Black trades knights.",d:"Trades open the center even more, which suits your bishop."},
+  {m:'d3e4',i:'Bishops on long roads',p:1,sh:['e4h7'],
+   g:"Plan move five: take back with your bishop. Look where it lands!",
+   y:"Your bishop sits in the center and aims at h7. A beautiful position!",x:"This was the time to recapture with the bishop.",d:"A bishop in the center on e4 aims at both sides of the board."}
+]);
+
+defLesson('french',{name:'French Defense',tag:'Build a wall, then hit the chain',color:'b',lvl:2,first:'e2e4',
+  firstText:"White starts with the king's pawn to e4. Your turn, and you are playing Black!",
+  intro:"Welcome to the French Defense! You build a strong pawn wall, and then you attack White's pawn chain from the side. It's a fighting defense loved by champions!",
+  outro:"Bravo! You played the French Defense. You built your wall, attacked White's chain with c5, and castled into a solid position.",
+  finalDeeper:"In the French, White gets space and Black hits the pawn chain with c5 and f6. Your plan was to trade on d4, put your bishop on c5 and race on the queen side.",
+  summary:['Prepare d5 with e6','Attack the pawn chain at its base','Bring knights to the action','Race on the side where you are stronger']},[
+  {m:'e7e6',r:'d2d4',i:'Prepare before you push',sh:['e6d5'],
+   g:"Mission one: you want to push d5 later. Which small pawn step makes d5 safe?",
+   y:"The French Defense! Your e6 pawn guards d5.",x:"This turn was your chance to prepare a safe center push.",
+   ok:{e7e5:"A great move! But for the French Defense, prepare d5 first.",c7c6:"That's the Caro-Kann! Very similar, but the French uses the e-pawn."},
+   t:"White builds a big center with d4.",d:"The e6 pawn locks in your light-squared bishop a little. That's the price of a strong wall."},
+  {m:'d7d5',r:'b1c3',i:'Challenge the center',sh:['d5e4'],g:"Mission two: now push a center pawn to challenge e4.",y:"Challenge! d5 attacks e4.",x:"This turn was your chance to challenge White's center.",t:"White protects e4 with the knight.",d:"Now White must decide: protect, trade, or push past."},
+  {m:'g8f6',r:'e4e5',i:'Knights first',sh:['f6e4'],g:"Mission three: attack e4 again with a knight.",y:"Pressure! Two attackers on e4.",x:"This turn was your chance to attack e4 again.",t:"White pushes past to e5 and kicks your knight!",d:"White's pawns now form a chain: d4 and e5. The base of the chain is d4."},
+  {m:'f6d7',r:'f2f4',i:'Retreat, stay active',g:"Mission four: your knight is attacked. Where can it go so it can still attack e5 later?",y:"Good! From d7 the knight can hit e5 or go to b6.",x:"Your knight was attacked. This turn was your chance to save it.",t:"White makes the chain even bigger with f4.",d:"The knight on d7 will help you attack the chain from the side."},
+  {m:'c7c5',r:'g1f3',i:'Hit the chain at its base',sh:['c5d4'],
+   g:"Mission five: this is the big French idea! Attack the base of White's pawn chain with a pawn.",
+   y:"Strike! c5 attacks d4, the bottom of the chain. If it falls, the whole chain gets weak.",x:"This turn was your chance to attack the base of the pawn chain.",
+   t:"White's knight comes to f3 to protect d4.",d:"Always attack a pawn chain at its base, the pawn at the back. It's the hardest one to protect."},
+  {m:'b8c6',r:'c1e3',i:'More pressure',sh:['c6d4'],g:"Mission six: bring another piece to attack d4.",y:"Now d4 is attacked by a pawn and a knight!",x:"This turn was your chance to add another attacker on d4.",t:"White guards d4 with the bishop.",d:"Count attackers and defenders. If you have more, you can capture."},
+  {m:'c5d4',r:'f3d4',i:'Trade in the center',g:"Mission seven: capture on d4!",y:"Capture! The center is opening for your pieces.",x:"This turn was your chance to capture on d4.",t:"White's knight takes back.",d:"Trading the d4 pawn makes White's e5 pawn lonely."},
+  {m:'f8c5',r:'d1d2',i:'Develop with pressure',p:1,sh:['c5d4'],g:"Plan move one: bring your bishop out to attack the knight on d4.",y:"Bishop to c5! It pins down White's pieces.",x:"This was the time to develop your bishop with pressure.",t:"White's queen comes to d2.",d:"Your bishop on c5 aims at d4 and the king-side squares behind it."},
+  {m:'e8g8',r:'e1c1',i:'Castle early',p:1,gl:['g8'],g:"Plan move two: castle to safety!",y:"Castled!",x:"This was the time to castle.",t:"White castles on the other side! Now it's a race.",d:"When kings castle on opposite sides, both players attack with pawns. Speed matters!"},
+  {m:'a7a6',r:'h2h4',i:'Race to attack',p:1,g:"Plan move three: start your attack on White's king. Push a pawn on the queen side, getting ready for b5.",y:"The race begins! a6 prepares b5.",x:"This was the time to start your pawn attack.",t:"White pushes the h-pawn toward your king.",d:"In a race, every move counts. Push pawns toward the enemy king."},
+  {m:'b7b5',i:'Race to attack',p:1,g:"Plan move four: push the next pawn toward White's king!",y:"Charge! Your pawns are coming for White's king.",x:"This was the time to push your attack.",d:"Your b-pawn will hit the knight on c3, which guards White's king."}
+]);
+
+defLesson('scandi',{name:'Scandinavian Defense',tag:'Strike right away',color:'b',lvl:1,first:'e2e4',
+  firstText:"White starts with e4. Your turn as Black!",
+  intro:"Welcome to the Scandinavian Defense! You hit White's pawn on the very first move. Your queen comes out early, but we'll keep her safe. It's simple and fun!",
+  outro:"Well done! You played the Scandinavian. Your queen found a safe home and your pieces came out fast.",
+  finalDeeper:"In the Scandinavian, your queen comes out early but goes to a5, where she's hard to chase. Then your light bishop comes out before e6, just like the Caro-Kann.",
+  summary:['Hit the center on move one','Find the queen a safe square','Bishop out before e6','Trade a bishop for a knight when it helps']},[
+  {m:'d7d5',r:'e4d5',i:'Challenge the center',sh:['d5e4'],g:"Mission one: attack White's pawn on e4 right away with a pawn!",y:"The Scandinavian! Your pawn attacks e4 on move one.",x:"This turn was your chance to strike the center right away.",t:"White captures on d5.",d:"You'll take the pawn back next move, and the center will be open."},
+  {m:'d8d5',r:'b1c3',i:'Take back right away',g:"Mission two: White took your pawn. Take it back! Which piece can reach d5?",y:"Got it back! Your queen sits in the center.",x:"Your pawn was captured. This turn was your chance to take back.",t:"White's knight attacks your queen!",d:"The queen comes out early here, so we must be careful about where she goes next."},
+  {m:'d5a5',r:'d2d4',i:'Keep the queen safe',sh:['a5e1'],
+   g:"Mission three: your queen is attacked. Find a safe square where she also pins White's knight.",
+   y:"Queen to a5! She's safe, and she pins the knight on c3 to White's king.",x:"Your queen was attacked. This turn was your chance to find her a safe, useful square.",
+   ok:{d5d6:"Safe, a real move! But on d6 the queen can be chased again. a5 is the classic square."},
+   w:{d5e5:"On e5 the queen gets chased again by White's pieces, and she blocks your e-pawn."},
+   t:"White grabs the center with d4.",d:"On a5 the queen is far from White's pieces, so she won't be kicked around."},
+  {m:'g8f6',r:'g1f3',i:'Knights first',g:"Mission four: wake up a knight.",y:"Knight out! It controls e4 and d5.",x:"This turn was your chance to develop a knight.",t:"White's knight comes out.",d:"Knights to the center, as always."},
+  {m:'c7c6',r:'f1c4',i:'Make a hideout',g:"Mission five: give your queen an escape square with a small pawn step, and guard d5.",y:"Smart! Now your queen can drop back to c7 if needed.",x:"This turn was your chance to give your queen a safe retreat.",t:"White's bishop comes to c4.",d:"Pieces that come out early need escape routes. c6 gives your queen one."},
+  {m:'c8f5',r:'c1d2',i:'Bishop out before e6',sh:['f5c2'],g:"Mission six: bring your light-squared bishop out before your e-pawn locks it in.",y:"Bishop to f5! Active and outside your pawns.",x:"This turn was your chance to bring the bishop out before e6.",w:{e7e6:"If you play e6 now, your bishop on c8 gets locked in. Bring it out first!"},t:"White's bishop comes to d2 and unpins the knight.",d:"Same idea as the Caro-Kann: light bishop out first, then e6."},
+  {m:'e7e6',r:'d1e2',i:'Build a wall',g:"Mission seven: now that your bishop is out, build your pawn wall and open your other bishop.",y:"Wall built! Your dark bishop can come out now.",x:"This turn was your chance to build your wall and open your dark bishop.",t:"White's queen comes to e2.",d:"With pawns on c6 and e6, your position is very solid."},
+  {m:'f8b4',r:'a2a3',i:'Develop with pressure',p:1,sh:['b4c3'],g:"Plan move one: bring your dark bishop out to put pressure on the knight on c3.",y:"Pressure on c3!",x:"This was the time to develop your bishop with pressure.",t:"White's pawn kicks your bishop.",d:"Your bishop and queen both aim at the knight on c3."},
+  {m:'b4c3',r:'d2c3',i:'Trade when it helps',p:1,g:"Plan move two: your bishop is attacked. Trade it for the knight.",y:"Traded! White's queen-side is less dangerous now.",x:"Your bishop was attacked! This was the time to trade it.",t:"White takes back with the bishop. Now it attacks your queen!",d:"Bishop for knight is a fair trade, and it saves you from losing time."},
+  {m:'a5c7',r:'e1c1',i:'Use your hideout',p:1,g:"Plan move three: your queen is attacked. Use the escape square you made!",y:"Safe! Thanks to c6, your queen has a home on c7.",x:"Your queen was attacked. Use the hideout!",t:"White castles on the queen side.",d:"See? The little c6 move saved your queen."},
+  {m:'b8d7',i:'Wake up every piece',p:1,g:"Plan move four: one piece is still asleep. Wake it up!",y:"All your pieces are out! Next you can castle.",x:"This was the time to develop your last piece.",d:"Your knight on d7 can go to f6 or b6 later, and your king is ready to castle."}
+]);
+
+defLesson('pirc',{name:'Pirc Defense',tag:'Let White build, then strike back',color:'b',lvl:2,first:'e2e4',
+  firstText:"White starts with e4. Your turn as Black!",
+  intro:"Welcome to the Pirc Defense! You let White build a big center, then you hide your king behind a fianchetto bishop and strike back. It's like a spring: first you squeeze, then you pop!",
+  outro:"Great job! You played the Pirc. Your bishop on g7 is a monster, your king is safe, and you struck the center at the right moment.",
+  finalDeeper:"The Pirc is a hypermodern defense: you control the center from a distance first, then hit it with e5 or c5. Your fianchettoed bishop on g7 is the star.",
+  summary:['Control the center from far away','Fianchetto your bishop','Castle behind the fianchetto','Strike the center later with e5']},[
+  {m:'d7d6',r:'d2d4',i:'Small but solid',g:"Mission one: start with a small pawn step that controls e5 and opens your light bishop.",y:"The Pirc! d6 is small, but it controls e5.",x:"This turn was your chance to start the Pirc with a small center pawn step.",t:"White builds a big center with d4.",d:"You're letting White take the center for now. You'll attack it later."},
+  {m:'g8f6',r:'b1c3',i:'Knights first',sh:['f6e4'],g:"Mission two: bring out a knight that attacks e4.",y:"Knight out, with pressure on e4!",x:"This turn was your chance to develop a knight with pressure.",t:"White protects e4 with the knight.",d:"Every move should develop or add pressure."},
+  {m:'g7g6',r:'g1f3',i:'Make a fianchetto',sh:['f8g7'],g:"Mission three: make a little nest on g7 for your bishop with one pawn step.",y:"Now your bishop can go to g7. That's called a fianchetto.",x:"This turn was your chance to prepare your bishop's nest.",t:"White's other knight comes out.",d:"Fianchetto is Italian for little flank. The bishop sits on the long diagonal."},
+  {m:'f8g7',r:'f1e2',i:'Bishops on long roads',sh:['g7d4'],g:"Mission four: put your bishop in its nest!",y:"The bishop on g7 looks down the whole long diagonal, toward d4 and beyond.",x:"This turn was your chance to put the bishop on the long diagonal.",t:"White's bishop comes to e2.",d:"The g7 bishop guards your king and attacks the center at the same time."},
+  {m:'e8g8',r:'e1g1',i:'Castle early',gl:['g8'],g:"Mission five: your king's nest is ready. Castle!",y:"Castled behind the fianchetto! A very safe king.",x:"This turn was your chance to castle.",t:"White castles too.",d:"Pawns on f7, g6, h7 plus the bishop on g7 make a strong shield."},
+  {m:'c7c6',r:'a2a4',i:'Prepare before you push',g:"Mission six: make a useful pawn move on the queen side that controls d5 and b5.",y:"c6 controls d5 and b5, and gives your queen more room.",x:"This turn was your chance to make a useful preparing move.",t:"White pushes a4 to stop your b5 idea.",d:"Small pawn moves can make big plans possible."},
+  {m:'b8d7',r:'h2h3',i:'Prepare the strike',p:1,sh:['d7e5'],g:"Plan move one: bring your last knight out to support a pawn strike on e5.",y:"Knight to d7 backs up e5.",x:"This was the time to prepare the e5 strike.",t:"White plays h3.",d:"Before you strike, line up your helpers."},
+  {m:'e7e5',r:'f1e1',i:'Strike in the center',p:1,sh:['e5d4'],g:"Plan move two: now strike White's center!",y:"Pop! The spring is released. e5 hits d4.",x:"This was the moment for the e5 strike.",t:"White's rook guards e4.",d:"This is the moment the Pirc waits for: hit the center once your king is safe."},
+  {m:'f8e8',r:'c1e3',i:'Rooks to the center',p:1,g:"Plan move three: bring your rook to the e-file.",y:"Rook to e8, ready for the fight in the center.",x:"This was the time to put your rook on the center file.",t:"White's bishop comes to e3.",d:"Your rook on e8 will love the e-file if it opens."},
+  {m:'e5d4',r:'f3d4',i:'Open the long diagonal',p:1,sh:['g7d4'],g:"Plan move four: capture on d4 to open the road for your g7 bishop.",y:"The long diagonal is open! Your bishop now sees the knight on d4.",x:"This was the time to open your bishop's long road.",t:"White's knight takes back.",d:"With the center open, your g7 bishop and e8 rook both press on White."}
+]);
+
+defLesson('petrov',{name:'Petrov Defense',tag:'Copy-cat counterattack',color:'b',lvl:2,first:'e2e4',
+  firstText:"White starts with e4. Your turn as Black!",
+  intro:"Welcome to the Petrov Defense! Instead of defending your pawn, you counterattack White's pawn. It's solid, clever, and has a famous trap to avoid. Let's go!",
+  outro:"Excellent! You played the Petrov and handled it like a master. You avoided the trap, built a strong center knight, and fought back.",
+  finalDeeper:"The Petrov answers an attack with an attack. The key lesson: after White takes e5, kick the knight with d6 before taking e4. Then your knight on e4 becomes a strong outpost.",
+  summary:['Counterattack instead of defending','Kick before you capture','Outpost knights in the center','Trade to break the pressure']},[
+  {m:'e7e5',r:'g1f3',i:'Grab the center',g:"Mission one: grab the center with a pawn.",y:"Good! e5 for e4.",x:"This turn was your chance to put a pawn in the center.",t:"White's knight attacks your pawn.",d:"White attacks e5. Most players defend. In the Petrov, we counterattack!"},
+  {m:'g8f6',r:'f3e5',i:'Counterattack',sh:['f6e4'],
+   g:"Mission two: instead of defending your pawn, attack White's pawn with a knight!",
+   y:"The Petrov! Your knight attacks e4. It's like saying: you take mine, I take yours.",x:"This turn was your chance to counterattack White's pawn.",
+   ok:{b8c6:"That defends the pawn, a great move! But the Petrov counterattacks instead."},
+   t:"White grabs your pawn on e5.",d:"Counterattacks are often stronger than defending, because they keep things even."},
+  {m:'d7d6',r:'e5f3',i:'Kick before you capture',sh:['d6e5'],
+   g:"Mission three: careful, here's a famous trap! Don't grab e4 yet. First, kick White's knight away with a pawn.",
+   y:"Smart! You kicked the knight away first. Now e4 is ready to be taken.",x:"This turn was your chance to kick the knight before capturing.",
+   w:{f6e4:"Careful! That's the famous trap. White's queen goes to e2, and if your knight moves, the queen checks your king and wins your queen!"},
+   t:"White's knight goes back to f3.",d:"If you take e4 right away, White plays Qe2 and pins your knight to your king."},
+  {m:'f6e4',r:'d2d4',i:'Win the pawn back',g:"Mission four: now take back the pawn on e4!",y:"Material is even again, and your knight sits in the center.",x:"This turn was your chance to win your pawn back.",t:"White pushes d4.",d:"The knight on e4 is strong. It's hard for White to kick it out."},
+  {m:'d6d5',r:'f1d3',i:'Support the outpost',g:"Mission five: support your knight on e4 with a pawn.",y:"Now your knight has a pawn bodyguard on d5.",x:"This turn was your chance to protect your knight with a pawn.",t:"White's bishop attacks your knight.",d:"A knight protected by a pawn deep in the center is called an outpost."},
+  {m:'b8c6',r:'e1g1',i:'Wake up every piece',sh:['c6d4'],g:"Mission six: wake up your other knight and attack d4.",y:"Knight out, attacking d4!",x:"This turn was your chance to develop a knight with pressure.",t:"White castles.",d:"Keep developing with threats when you can."},
+  {m:'f8e7',r:'c2c4',i:'Get ready to castle',g:"Mission seven: bring your bishop out so your king can castle.",y:"Bishop out! Your king is ready.",x:"This turn was your chance to develop your bishop and prepare castling.",t:"White hits your d5 pawn with c4.",d:"White is trying to break your center. Time for a plan."},
+  {m:'c6b4',r:'d3e2',i:'Hunt the strong bishop',p:1,sh:['b4d3'],g:"Plan move one: your knight can jump to attack White's bishop on d3, the piece that eyes your king.",y:"Attack! White's bishop has to move.",x:"This was the time to attack White's strong bishop.",t:"White's bishop retreats to e2.",d:"White's d3 bishop aims at h7. Chasing it away makes your king safer."},
+  {m:'e8g8',r:'b1c3',i:'Castle early',p:1,gl:['g8'],g:"Plan move two: castle!",y:"Castled!",x:"This was the time to castle.",t:"White's knight attacks your knight on e4.",d:"With the king safe, you can fight in the center."},
+  {m:'c8f5',r:'a2a3',i:'Bishop out with purpose',p:1,g:"Plan move three: bring your last bishop out to protect your e4 knight.",y:"Bishop to f5 guards e4!",x:"This was the time to protect your knight and develop.",t:"White's pawn kicks your knight on b4!",d:"Develop with purpose: every piece should have a job."},
+  {m:'e4c3',r:'b2c3',i:'Trade to break the pressure',p:1,g:"Plan move four: trade your center knight for White's knight.",y:"Traded! White's pawns are now doubled.",x:"This was the time to trade knights.",t:"White takes back with a pawn. Your b4 knight is still attacked!",d:"Doubled pawns are a little weak. You gave White one!"},
+  {m:'b4c6',i:'Retreat, stay active',p:1,g:"Plan move five: your knight on b4 is attacked. Bring it back to a good square.",y:"Safe, and back in the action!",x:"Your knight was attacked! Save it.",d:"Always check: are any of my pieces attacked? Then make your plan."}
+]);
+
+defLesson('kid',{name:"King's Indian Defense",tag:'Fianchetto and storm',color:'b',lvl:3,first:'d2d4',
+  firstText:"White starts with the queen's pawn to d4. Your turn as Black!",
+  intro:"Welcome to the King's Indian Defense! You let White build a huge center, then hide your king behind a fianchetto and storm White's king side with your pawns. Champions love it!",
+  outro:"Fantastic! You played the King's Indian. Your king is safe, your bishop is on the long diagonal, and your f-pawn is ready to storm.",
+  finalDeeper:"In the King's Indian, when White's center gets locked with d5, both sides attack on the side where their pawns point. Black's pawns point at White's king, so Black storms with f5 and f4.",
+  summary:['Fianchetto and castle','Strike back with e5','Attack where your pawns point','Reroute knights to support the storm']},[
+  {m:'g8f6',r:'c2c4',i:'Knights first',g:"Mission one: bring out a knight that controls the center squares e4 and d5.",y:"Knight out! It controls e4.",x:"This turn was your chance to develop a knight toward the center.",t:"White grabs more space with c4.",d:"Starting with the knight keeps your plans secret."},
+  {m:'g7g6',r:'b1c3',i:'Make a fianchetto',sh:['f8g7'],g:"Mission two: make a nest for your bishop on g7.",y:"Nest ready!",x:"This turn was your chance to prepare a fianchetto.",t:"White's knight comes out.",d:"The King's Indian bishop on g7 is the heart of this defense."},
+  {m:'f8g7',r:'e2e4',i:'Bishops on long roads',sh:['g7d4'],g:"Mission three: put your bishop in its nest.",y:"The bishop on g7 looks at d4 and beyond.",x:"This turn was your chance to put the bishop on the long diagonal.",t:"White builds a giant center with e4.",d:"White has three pawns in the center. Don't panic! You'll hit them soon."},
+  {m:'d7d6',r:'g1f3',i:'Small but solid',g:"Mission four: stop White's e-pawn from pushing to e5 with a small pawn step.",y:"d6 holds e5.",x:"This turn was your chance to stop e5 with a pawn.",t:"White's other knight comes out.",d:"If White pushed e5, your knight would be kicked. d6 stops that."},
+  {m:'e8g8',r:'f1e2',i:'Castle early',gl:['g8'],g:"Mission five: castle behind your fianchetto.",y:"Castled! Very safe.",x:"This turn was your chance to castle.",t:"White's bishop comes out.",d:"Now your king is safe and you can fight."},
+  {m:'e7e5',r:'e1g1',i:'Strike in the center',sh:['e5d4'],g:"Mission six: time to hit back! Push a pawn to attack d4.",y:"Strike! e5 fights for the center.",x:"This turn was your chance to strike White's center.",t:"White castles.",d:"The e5 strike is the King's Indian's main idea."},
+  {m:'b8c6',r:'d4d5',i:'More pressure',sh:['c6d4'],g:"Mission seven: bring another piece to attack d4.",y:"d4 is attacked twice!",x:"This turn was your chance to add another attacker.",t:"White pushes d5 and locks the center. Your knight is attacked!",d:"When the center locks, the game moves to the sides."},
+  {m:'c6e7',r:'f3e1',i:'Reroute to the king side',p:1,g:"Plan move one: your knight is attacked. Bring it back toward the king side, where your attack will happen.",y:"Good! On e7 the knight will help the king-side storm.",x:"Your knight was attacked. Move it toward the king side.",t:"White's knight steps back to e1.",d:"Your pawns on d6 and e5 point toward White's king side. That's where you attack."},
+  {m:'f6d7',r:'e1d3',i:'Free the f-pawn',p:1,g:"Plan move two: your f-pawn wants to march, but a knight stands in front of it. Move that knight!",y:"The f-pawn is free!",x:"This was the time to free your f-pawn.",t:"White's knight comes to d3.",d:"Knights often step back to let pawns charge."},
+  {m:'f7f5',r:'c1d2',i:'Storm the king',p:1,sh:['f5e4'],g:"Plan move three: charge! Push your f-pawn two squares.",y:"Charge! f5 attacks White's center and starts the storm.",x:"This was the moment to start your pawn storm.",t:"White's bishop comes to d2.",d:"In the King's Indian, f5 then f4 then g5 is the classic attack."},
+  {m:'d7f6',r:'f2f3',i:'Bring the pieces',p:1,g:"Plan move four: bring your knight back to the king side to support the attack.",y:"Your knight is back, supporting the storm.",x:"This was the time to bring your knight to support the attack.",t:"White strengthens with f3.",d:"Pawns lead, pieces follow. That's how a storm works."}
+]);
+
+/* Library levels for the first seven lessons */
+Object.assign(LESSONS.italian,{lvl:1});Object.assign(LESSONS.ruy,{lvl:2});Object.assign(LESSONS.qg,{lvl:1});
+Object.assign(LESSONS.london,{lvl:1});Object.assign(LESSONS.scotch,{lvl:2});Object.assign(LESSONS.sicilian,{lvl:3});Object.assign(LESSONS.caro,{lvl:1});
+
+/* ================= Batch 2 ================= */
+defLesson('english',{name:'English Opening',tag:'Start from the side',color:'w',lvl:2,
+  intro:"Welcome to the English Opening! Instead of a center pawn, you start with the c-pawn. You'll fight for the center from the side, with a fianchetto bishop. It's clever and flexible!",
+  outro:"Excellent! You played the English and a smart queen-side plan. Your bishop on g2 is strong and your pawns are rolling forward.",
+  finalDeeper:"The English is a reversed Sicilian: you play Black's ideas, but with an extra move. Your bishop on g2 aims at the center and the queen side, so your plan was a queen-side pawn push.",
+  summary:['Fight for the center from the side','Fianchetto your bishop','Trade a wing pawn for a center pawn','Attack where your bishop aims']},[
+  {m:'c2c4',r:'e7e5',i:'Control the center from the side',sh:['c4d5'],g:"Mission one: start with a pawn that controls d5 from the side, not from the middle.",y:"The English! Your c-pawn watches d5.",x:"This turn was your chance to start the English with the c-pawn.",ok:{e2e4:"A great first move! But the English starts with the c-pawn.",d2d4:"A great first move! But the English starts with the c-pawn."},t:"Black takes the center with e5.",d:"You're letting Black have the center for now, and you'll attack it from the sides."},
+  {m:'b1c3',r:'g8f6',i:'Knights first',sh:['c3d5'],g:"Mission two: bring out a knight that also watches d5.",y:"Two pieces on d5!",x:"This turn was your chance to develop a knight toward d5.",t:"Black's knight comes out.",d:"In the English, d5 is your favourite square."},
+  {m:'g2g3',r:'d7d5',i:'Make a fianchetto',sh:['f1g2'],g:"Mission three: make a nest on g2 for your bishop.",y:"The nest is ready!",x:"This turn was your chance to prepare your fianchetto.",t:"Black pushes d5 to grab the center.",d:"Black wants a big center. You'll trade it away."},
+  {m:'c4d5',r:'f6d5',i:'Trade a wing pawn for a center pawn',g:"Mission four: Black's pawn on d5 is touching your c-pawn. Capture it!",y:"Great trade! You gave a side pawn and took a center pawn.",x:"This turn was your chance to trade your side pawn for Black's center pawn.",t:"Black's knight takes back on d5.",d:"Trading a c-pawn for a d-pawn is a good deal: center pawns are worth more."},
+  {m:'f1g2',r:'d5b6',i:'Bishops on long roads',sh:['g2b7'],g:"Mission five: put your bishop in its nest, aiming at the knight on d5.",y:"Your bishop attacks d5 from far away!",x:"This turn was your chance to put your bishop on the long diagonal.",t:"Black's knight steps back to b6.",d:"Look how far your bishop sees: all the way to b7!"},
+  {m:'g1f3',r:'b8c6',i:'Wake up every piece',sh:['f3e5'],g:"Mission six: bring out your king-side knight and attack e5.",y:"Pressure on e5, and you're ready to castle!",x:"This turn was your chance to develop and attack e5.",t:"Black defends with the knight.",d:"Every developing move should do something."},
+  {m:'e1g1',r:'f8e7',i:'Castle early',gl:['g1'],g:"Mission seven: castle!",y:"Castled behind your fianchetto!",x:"This turn was your chance to castle.",t:"Black's bishop comes to e7.",d:"Now your opening is done. Time for a plan."},
+  {m:'d2d3',r:'e8g8',i:'Open the road for the bishop',p:1,g:"Plan move one: wake up your dark-squared bishop with a small pawn step.",y:"Your last bishop can come out now.",x:"This was the time to open a road for your last bishop.",t:"Black castles.",d:"d3 also stops Black's pieces from landing on e4 or c4."},
+  {m:'a2a3',r:'c8e6',i:'Prepare before you push',p:1,g:"Plan move two: you want to push your b-pawn two squares. First make b4 safe with a small pawn step.",y:"Now b4 is protected.",x:"This was the time to prepare b4.",t:"Black's bishop comes to e6.",d:"Your g2 bishop aims at the queen side, so that's where you push your pawns."},
+  {m:'b2b4',r:'f7f6',i:'Attack where your bishop aims',p:1,sh:['b4b5'],g:"Plan move three: push your b-pawn forward to gain space!",y:"Charge! b4 gains space and wants to chase Black's knight on c6.",x:"This was the time to push your queen-side pawns.",t:"Black protects e5 with f6.",d:"b4 then b5 kicks the knight on c6, and then the e5 pawn loses its guard."},
+  {m:'a1b1',r:'d8d7',i:'Rooks behind pawns',p:1,g:"Plan move four: put your rook behind the b-pawn to support it.",y:"Rook to b1! It backs up your pawn march.",x:"This was the time to put your rook behind your pawns.",t:"Black's queen comes to d7.",d:"Rooks love to stand behind pawns that march. When the b-file opens, your rook is ready."}
+]);
+
+defLesson('reti',{name:'Réti Opening',tag:'Knight first, center later',color:'w',lvl:2,
+  intro:"Welcome to the Réti Opening! You start with a knight, then attack the center from the sides with pawns and bishops. It's sneaky and modern. Let's play!",
+  outro:"Brilliant! You played the Réti. Two bishops are pointing at the center, your king is safe, and you broke Black's center at the right moment.",
+  finalDeeper:"The Réti controls the center with pieces from a distance. Both of your bishops are fianchettoed or on long diagonals, then you hit the center with c4xd5 and d4.",
+  summary:['Knight first, keep it flexible','Hit the center from the sides','Two bishops on long diagonals','Strike when your pieces are ready']},[
+  {m:'g1f3',r:'d7d5',i:'Knights first',g:"Mission one: start with a knight that controls e5 and d4.",y:"The Réti starts with a knight!",x:"This turn was your chance to start with your king-side knight.",t:"Black grabs the center with d5.",d:"A knight first keeps all your plans secret."},
+  {m:'c2c4',r:'e7e6',i:'Hit the center from the side',sh:['c4d5'],g:"Mission two: attack Black's center pawn from the side with a pawn.",y:"Pressure on d5 from the side!",x:"This turn was your chance to attack d5 with a side pawn.",t:"Black guards d5 with e6.",d:"This is the Réti's main idea: c4 hits d5."},
+  {m:'g2g3',r:'g8f6',i:'Make a fianchetto',sh:['f1g2'],g:"Mission three: make a nest for your bishop on g2.",y:"Nest ready!",x:"This turn was your chance to prepare a fianchetto.",t:"Black's knight comes out.",d:"Fianchetto bishops are long-range snipers."},
+  {m:'f1g2',r:'f8e7',i:'Bishops on long roads',sh:['g2d5'],g:"Mission four: bishop into the nest!",y:"Your bishop aims at d5 and beyond.",x:"This turn was your chance to put your bishop on the long diagonal.",t:"Black's bishop comes to e7.",d:"Now d5 is attacked by your pawn and your bishop."},
+  {m:'e1g1',r:'e8g8',i:'Castle early',gl:['g1'],g:"Mission five: castle!",y:"Castled!",x:"This turn was your chance to castle.",t:"Black castles too.",d:"Both kings are safe. The center fight begins."},
+  {m:'b2b3',r:'c7c5',i:'Make a second fianchetto',sh:['c1b2'],g:"Mission six: make a nest for your other bishop, on the queen side.",y:"Double fianchetto coming!",x:"This turn was your chance to prepare your second bishop's nest.",t:"Black grabs more center with c5.",d:"Two bishops on long diagonals cover the whole center."},
+  {m:'c1b2',r:'b8c6',i:'Bishops on long roads',sh:['b2f6'],g:"Mission seven: put your second bishop in its nest.",y:"Two snipers! Both bishops aim at the center.",x:"This turn was your chance to put your second bishop on the long diagonal.",t:"Black's knight comes out.",d:"Your b2 bishop aims at f6 and g7, near Black's king."},
+  {m:'e2e3',r:'b7b6',i:'Pawns make great bodyguards',p:1,g:"Plan move one: make a little pawn wall in the center to stop Black's pawns from pushing to d4.",y:"Solid! e3 controls d4.",x:"This was the time to stop Black's center push.",t:"Black prepares a fianchetto too.",d:"Stopping your opponent's plan is as important as making your own."},
+  {m:'b1c3',r:'c8b7',i:'Wake up every piece',p:1,sh:['c3d5'],g:"Plan move two: bring out your last knight, adding another attacker on d5.",y:"d5 is attacked three times now!",x:"This was the time to bring out your last piece.",t:"Black's bishop goes to b7.",d:"Count attackers on d5: pawn, bishop, knight."},
+  {m:'c4d5',r:'e6d5',i:'Strike when ready',p:1,g:"Plan move three: all your pieces are ready. Trade on d5!",y:"Trade! Now Black has a lonely pawn on d5.",x:"This was the moment to capture in the center.",t:"Black takes back with the e-pawn.",d:"Black's d5 pawn can become a target for your pieces."},
+  {m:'d2d4',i:'Strike in the center',p:1,sh:['d4c5'],g:"Plan move four: strike in the center again, attacking c5!",y:"Strike! Now Black's center pawns are under fire.",x:"This was the time to hit Black's center.",d:"Your bishops, knights and pawns all work together against Black's center."}
+]);
+
+defLesson('kia',{name:"King's Indian Attack",tag:'One setup, a big attack',color:'w',lvl:1,
+  intro:"Welcome to the King's Indian Attack! You build the same cozy setup almost every game, and then you push your pawns at Black's king. It's easy to remember and very dangerous!",
+  outro:"Superb! You built the King's Indian Attack and started a real king-side attack. Your pawns are marching!",
+  finalDeeper:"The King's Indian Attack is a system: knight, fianchetto, castle, d3, Nbd2, e4. When your pawn reaches e5, it points at Black's king, so you attack there with Nf1, h4 and more.",
+  summary:['The same setup every game','Push e4 when ready','Your pawn on e5 shows where to attack','Bring knights over for the attack']},[
+  {m:'g1f3',r:'d7d5',i:'Knights first',g:"Mission one: start with your king-side knight.",y:"Knight out!",x:"This turn was your chance to start with a knight.",t:"Black takes the center.",d:"The knight controls e5 and d4."},
+  {m:'g2g3',r:'g8f6',i:'Make a fianchetto',sh:['f1g2'],g:"Mission two: make a nest for your bishop.",y:"Nest ready!",x:"This turn was your chance to prepare the fianchetto.",t:"Black's knight comes out.",d:"Your king will hide behind this nest."},
+  {m:'f1g2',r:'e7e6',i:'Bishops on long roads',g:"Mission three: put your bishop in its nest.",y:"Bishop on the long diagonal!",x:"This turn was your chance to fianchetto.",t:"Black plays e6.",d:"Now you can castle."},
+  {m:'e1g1',r:'f8e7',i:'Castle early',gl:['g1'],g:"Mission four: castle!",y:"Castled! Super safe.",x:"This turn was your chance to castle.",t:"Black's bishop comes out.",d:"In the KIA, you castle very early."},
+  {m:'d2d3',r:'e8g8',i:'Prepare the strike',g:"Mission five: push a small pawn step that will support e4 later.",y:"d3 prepares e4.",x:"This turn was your chance to prepare the e4 push.",t:"Black castles.",d:"Small steps, big plan."},
+  {m:'b1d2',r:'c7c5',i:'Prepare the strike',sh:['d2e4'],g:"Mission six: bring out your last knight to a square where it also supports e4.",y:"Knight to d2 backs up e4!",x:"This turn was your chance to support the e4 push with a knight.",ok:{b1c3:"A good developing move! But in the KIA, the knight goes to d2 to back up e4."},t:"Black grabs space with c5.",d:"Nbd2 is the KIA's secret ingredient."},
+  {m:'e2e4',r:'b8c6',i:'Strike in the center',sh:['e4d5'],g:"Mission seven: now strike with your e-pawn!",y:"Strike! e4 hits d5.",x:"This was the moment to push e4.",t:"Black's knight comes out.",d:"Your setup is complete. Now the plan."},
+  {m:'f1e1',r:'b7b5',i:'Rooks to the center',p:1,g:"Plan move one: put your rook behind your e-pawn.",y:"Rook to e1 supports e5!",x:"This was the time to support your e-pawn with the rook.",t:"Black starts a queen-side pawn race.",d:"Your rook will help your pawn push to e5."},
+  {m:'e4e5',r:'f6d7',i:'Gain space',p:1,sh:['e5f6'],g:"Plan move two: push your e-pawn further and kick Black's knight!",y:"Space! Your e5 pawn kicks the knight and points at Black's king.",x:"This was the time to push e5 and gain space.",t:"Black's knight steps back.",d:"A pawn on e5 cramps Black's king side. That's where you'll attack."},
+  {m:'d2f1',r:'a7a5',i:'Bring knights to the attack',p:1,g:"Plan move three: your knight on d2 wants to travel toward Black's king. Start the trip!",y:"The knight heads to f1, then h2 or e3 and g4.",x:"This was the time to reroute your knight.",t:"Black pushes a5.",d:"Knights take long trips to reach attacking squares."},
+  {m:'h2h4',r:'b5b4',i:'Storm the king',p:1,g:"Plan move four: push a pawn toward Black's king to start the storm!",y:"The storm begins! h4 then h5.",x:"This was the time to start your attack with pawns.",t:"Black pushes b4. It's a race!",d:"In a race, attack fast and don't get distracted."}
+]);
+
+defLesson('stonewall',{name:'Stonewall Attack',tag:'A stone wall and a king hunt',color:'w',lvl:1,
+  intro:"Welcome to the Stonewall Attack! You build an unbreakable wall of pawns, then send your pieces to attack Black's king. It's simple and powerful!",
+  outro:"Fantastic! You built the Stonewall and swung your rook over for the attack. Black's king will feel the heat!",
+  finalDeeper:"The Stonewall uses pawns on c3, d4, e3 and f4. The knight jumps to e5, and the rook lifts to f3 and h3 to attack h7 with the bishop on d3.",
+  summary:['Build the stone wall','Knight to e5','Rook lift to the king side','Aim everything at h7']},[
+  {m:'d2d4',r:'d7d5',i:'Grab the center',g:"Mission one: start with the queen's pawn.",y:"Great start!",x:"This turn was your chance to grab the center.",t:"Black answers with d5.",d:"d4 is the first stone in your wall."},
+  {m:'e2e3',r:'g8f6',i:'Open the road for the bishop',g:"Mission two: open your light bishop's road with a small pawn step.",y:"Second stone!",x:"This turn was your chance to free your bishop.",t:"Black's knight comes out.",d:"e3 also supports d4."},
+  {m:'f1d3',r:'c7c5',i:'Bishops on long roads',sh:['d3h7'],g:"Mission three: put your bishop on its best diagonal, aiming at h7.",y:"Bishop to d3 aims at h7!",x:"This turn was your chance to aim your bishop at Black's king side.",t:"Black attacks d4 with c5.",d:"The d3 bishop is your attacking star."},
+  {m:'c2c3',r:'b8c6',i:'Pawns make great bodyguards',g:"Mission four: protect d4 with a pawn.",y:"Third stone!",x:"Your d4 pawn was attacked! Protect it with a pawn.",t:"Black's knight comes out.",d:"c3, d4, e3: the wall is almost done."},
+  {m:'f2f4',r:'e7e6',i:'Build the stone wall',sh:['f4e5'],g:"Mission five: complete the Stonewall with a pawn that guards e5.",y:"The Stonewall is built! Now e5 is yours.",x:"This turn was your chance to complete the wall.",t:"Black plays e6.",d:"Your pawns on d4 and f4 both guard e5, a perfect home for your knight."},
+  {m:'g1f3',r:'f8d6',i:'Knights first',g:"Mission six: bring out your king-side knight.",y:"Knight out, heading for e5!",x:"This turn was your chance to develop your knight.",t:"Black's bishop comes to d6.",d:"Soon the knight will jump to e5."},
+  {m:'e1g1',r:'e8g8',i:'Castle early',gl:['g1'],g:"Mission seven: castle!",y:"Castled!",x:"This turn was your chance to castle.",t:"Black castles. Now let's attack!",d:"Black's king is on the king side, where your pieces aim."},
+  {m:'f3e5',r:'d8c7',i:'Knight to the outpost',p:1,g:"Plan move one: jump your knight to the square your wall protects!",y:"The knight lands on e5! It can't be kicked by a pawn easily.",x:"This was the time to jump into e5.",t:"Black's queen comes to c7.",d:"A knight on e5 supported by two pawns is a monster."},
+  {m:'b1d2',r:'b7b6',i:'Wake up every piece',p:1,g:"Plan move two: bring out your last knight to support e5 and f3.",y:"All knights out!",x:"This was the time to develop your last knight.",t:"Black prepares a fianchetto.",d:"The d2 knight protects e4 and can go to f3."},
+  {m:'f1f3',r:'c8b7',i:'Rook lift',p:1,g:"Plan move three: lift your rook up the board so it can swing to the king side!",y:"Rook lift! Your rook will swing to h3.",x:"This was the time to lift your rook.",t:"Black's bishop goes to b7.",d:"Rooks can attack sideways. A rook lift is a great attacking idea."},
+  {m:'f3h3',r:'g7g6',i:'Aim everything at h7',p:1,sh:['h3h7','d3h7'],g:"Plan move four: swing your rook to the h-file, aiming at h7.",y:"Rook and bishop both aim at h7!",x:"This was the time to swing your rook at Black's king.",t:"Black blocks your bishop with g6.",d:"Two attackers on h7 make Black nervous."},
+  {m:'d1f3',i:'Bring the queen',p:1,g:"Plan move five: bring your queen into the attack.",y:"Queen joins! Rook, bishop, knight and queen are all aiming at Black's king.",x:"This was the time to add your queen to the attack.",d:"Next, ideas like Qh5 or g4-g5 can break Black's king shield."}
+]);
+
+defLesson('trompowsky',{name:'Trompowsky Attack',tag:'Bishop out on move two',color:'w',lvl:3,
+  intro:"Welcome to the Trompowsky Attack! On move two, your bishop jumps out to pin Black's knight. It's a surprise weapon that gives Black a headache right away!",
+  outro:"Great work! You played the Trompowsky. You gave up a bishop for a knight, built a big center, and castled on the queen side for an attack.",
+  finalDeeper:"In the Trompowsky, Bxf6 gives Black the two bishops, but you get a big center and fast development. Castling queen side lets you push your king-side pawns.",
+  summary:['Surprise with an early bishop','Trade bishop for knight to build a center','Castle on the queen side','Develop every piece before attacking']},[
+  {m:'d2d4',r:'g8f6',i:'Grab the center',g:"Mission one: start with the queen's pawn.",y:"Great start!",x:"This turn was your chance to grab the center.",t:"Black's knight comes to f6.",d:"Now the surprise!"},
+  {m:'c1g5',r:'e7e6',i:'Pin and pressure',sh:['g5f6'],g:"Mission two: here's the Trompowsky surprise! Bring your dark-squared bishop out to attack the knight on f6.",y:"The Trompowsky! Your bishop attacks the knight right away.",x:"This turn was your chance to surprise Black with an early bishop.",ok:{c2c4:"A great move, the Queen's Gambit idea! But the Trompowsky brings the bishop out first."},t:"Black plays e6 so the queen can take back.",d:"Black's knight is the piece that controls e4. You want to take it."},
+  {m:'e2e4',r:'h7h6',i:'Grab the center',g:"Mission three: grab more center with your e-pawn.",y:"A big center! Pawns on d4 and e4.",x:"This turn was your chance to build a big center.",t:"Black kicks your bishop.",d:"Your bishop on g5 helps: it pins Black's knight, so it can't capture e4."},
+  {m:'g5f6',r:'d8f6',i:'Trade to build a center',g:"Mission four: your bishop is attacked. Trade it for the knight!",y:"Trade! Black's knight is gone, so your center is safe.",x:"Your bishop was attacked. This was the time to trade it.",t:"Black's queen takes back.",d:"Bishop for knight is fair, and it keeps your big center."},
+  {m:'b1c3',r:'d7d6',i:'Knights first',g:"Mission five: bring out a knight to protect your center.",y:"Knight out, guarding e4 and d5.",x:"This turn was your chance to develop a knight.",t:"Black plays d6.",d:"Develop quickly, because Black has two bishops."},
+  {m:'d1d2',r:'b8c6',i:'Prepare to castle long',g:"Mission six: get ready to castle on the queen side! Move your queen out of the way.",y:"Queen to d2. Now you can castle queen side.",x:"This turn was your chance to clear the way for castling.",t:"Black's knight comes out.",d:"Castling queen side means you can attack with your king-side pawns."},
+  {m:'e1c1',r:'c8d7',i:'Castle on the queen side',p:1,gl:['c1'],g:"Plan move one: castle on the queen side!",y:"Castled long! Your rook is already on the center file.",x:"This was the time to castle.",t:"Black's bishop comes to d7.",d:"Queen-side castling puts your rook on d1 right away."},
+  {m:'f2f4',r:'e8c8',i:'Gain space',p:1,g:"Plan move two: push a king-side pawn to grab more space.",y:"f4 controls e5 and g5. More space!",x:"This was the time to gain space with a pawn.",t:"Black castles queen side too.",d:"More space means your pieces have more squares."},
+  {m:'g1f3',r:'c8b8',i:'Wake up every piece',p:1,g:"Plan move three: wake up your last knight.",y:"Knight out!",x:"This was the time to develop your knight.",t:"Black's king steps to b8 for safety.",d:"Always finish developing before attacking."},
+  {m:'f1d3',r:'f8e7',i:'Bishops on long roads',p:1,g:"Plan move four: bring out your last bishop.",y:"Bishop to d3!",x:"This was the time to develop your last bishop.",t:"Black's bishop comes out.",d:"Now only the h1 rook is left."},
+  {m:'h1e1',i:'Rooks to the center',p:1,g:"Plan move five: bring your last rook to the center!",y:"Every piece is in play! Your rooks guard the center.",x:"This was the time to bring your last rook to the center.",d:"With everything developed, you're ready for e5 or a pawn storm."}
+]);
+
+defLesson('slav',{name:'Slav Defense',tag:'Guard the center, free the bishop',color:'b',lvl:1,first:'d2d4',
+  firstText:"White starts with d4. Your turn as Black!",
+  intro:"Welcome to the Slav Defense! It's like the Caro-Kann, but against d4. You guard your center with the c-pawn and bring your light bishop out before e6. Solid and smart!",
+  outro:"Well done! You played the Slav. Your light bishop got out, your king is safe, and you're ready for anything.",
+  finalDeeper:"The Slav keeps the light bishop free by supporting d5 with c6 instead of e6. After dxc4, your bishop goes to f5 or g4 before you play e6.",
+  summary:['Guard the center with c6','Grab a pawn when White lets you','Bishop out before e6','Pin with the dark bishop']},[
+  {m:'d7d5',r:'c2c4',i:'Grab the center',g:"Mission one: grab the center with a pawn.",y:"Good!",x:"This turn was your chance to grab the center.",t:"White offers a pawn with c4.",d:"This is the Queen's Gambit. You'll guard d5 in a special way."},
+  {m:'c7c6',r:'g1f3',i:'Guard the center',g:"Mission two: guard your d5 pawn with a pawn that doesn't block your light bishop.",y:"The Slav! c6 guards d5 and your bishop on c8 is still free.",x:"This turn was your chance to guard d5 without blocking your bishop.",ok:{e7e6:"That's the Queen's Gambit Declined, a great defense! But it blocks your bishop. The Slav uses the c-pawn."},t:"White's knight comes out.",d:"With c6, your bishop can come out to f5 or g4 later."},
+  {m:'g8f6',r:'b1c3',i:'Knights first',g:"Mission three: bring out a knight.",y:"Knight out!",x:"This turn was your chance to develop a knight.",t:"White's other knight comes out.",d:"Now a clever moment arrives."},
+  {m:'d5c4',r:'a2a4',i:'Grab when allowed',g:"Mission four: White's c-pawn is touching your d-pawn. Grab it!",y:"Got it! Now White has to work to win it back.",x:"This turn was your chance to capture the c4 pawn.",t:"White stops your b5 with a4.",d:"White wants the pawn back, but meanwhile your bishop gets out."},
+  {m:'c8f5',r:'e2e3',i:'Bishop out before e6',sh:['f5b1'],g:"Mission five: bring your light bishop out before you play e6!",y:"Bishop to f5! Free and active.",x:"This turn was your chance to bring your bishop out before e6.",w:{e7e6:"Careful! That locks in your bishop on c8. Bring it out first."},t:"White prepares to take back c4.",d:"This is why we played c6 instead of e6."},
+  {m:'e7e6',r:'f1c4',i:'Build a wall',g:"Mission six: now build your pawn wall and open your other bishop.",y:"Solid wall, and your dark bishop is free.",x:"This turn was your chance to build your wall.",t:"White takes back the c4 pawn.",d:"Material is even again, but you've developed nicely."},
+  {m:'f8b4',r:'e1g1',i:'Pin and pressure',sh:['b4c3'],g:"Mission seven: bring your dark bishop out to pin White's knight.",y:"A pin! The knight on c3 can't move easily.",x:"This turn was your chance to develop with a pin.",t:"White castles.",d:"The pin stops White's e4 push for a while."},
+  {m:'e8g8',r:'d1e2',i:'Castle early',p:1,gl:['g8'],g:"Plan move one: castle!",y:"Castled!",x:"This was the time to castle.",t:"White's queen comes to e2.",d:"White is preparing e4."},
+  {m:'b8d7',r:'e3e4',i:'Wake up every piece',p:1,g:"Plan move two: bring out your last knight.",y:"All pieces out!",x:"This was the time to develop your last piece.",t:"White pushes e4 and attacks your bishop!",d:"Now you must react to White's threat."},
+  {m:'f5g6',r:'c4d3',i:'Retreat, stay active',p:1,g:"Plan move three: your bishop is attacked. Step back on the same diagonal.",y:"Safe, and still on the long road!",x:"Your bishop was attacked. Save it on the same diagonal.",t:"White's bishop comes to d3.",d:"On g6 your bishop also protects your king."},
+  {m:'g6h5',r:'e4e5',i:'Pin to the queen',p:1,sh:['h5f3','~f3e2'],g:"Plan move four: find a square where your bishop pins White's knight on f3 to the queen.",y:"Pin! White's knight is stuck in front of the queen.",x:"This was the time to pin White's knight.",t:"White pushes e5 and attacks your knight!",d:"Pins make your opponent's pieces less useful."},
+  {m:'f6d5',i:'Knight to the outpost',p:1,g:"Plan move five: your knight is attacked. Jump to the strong central square!",y:"The knight lands on d5, a perfect outpost!",x:"Your knight was attacked. Find it a strong central square.",d:"White's pawn can't attack d5 anymore. Your knight is a rock."}
+]);
+
+defLesson('qgd',{name:"Queen's Gambit Declined",tag:'Say no thanks, build a fortress',color:'b',lvl:2,first:'d2d4',
+  firstText:"White starts with d4. Your turn as Black!",
+  intro:"Welcome to the Queen's Gambit Declined! White offers a pawn, and you politely say no thanks. You build a strong fortress and then find a clever spot for your light bishop.",
+  outro:"Bravo! You played the Queen's Gambit Declined and the Tartakower plan. Your bishop found a great diagonal and you struck with c5.",
+  finalDeeper:"The QGD is one of the most solid defenses. Its problem is the light bishop, so we fianchetto it with b6 and Bb7. After trades, c5 frees your game.",
+  summary:['Decline the gambit with e6','Castle early','Fianchetto the light bishop with b6','Free your position with c5']},[
+  {m:'d7d5',r:'c2c4',i:'Grab the center',g:"Mission one: grab the center.",y:"Good!",x:"This turn was your chance to grab the center.",t:"White offers the c-pawn.",d:"That's the Queen's Gambit."},
+  {m:'e7e6',r:'b1c3',i:'Decline the gambit',g:"Mission two: guard your d5 pawn with a pawn and open your dark bishop.",y:"No thanks! e6 guards d5 like a fortress.",x:"This turn was your chance to guard d5 with a pawn.",ok:{c7c6:"That's the Slav, also excellent! But the QGD uses the e-pawn."},t:"White's knight comes out.",d:"Your light bishop is locked in a bit, but we'll fix that later."},
+  {m:'g8f6',r:'c1g5',i:'Knights first',g:"Mission three: bring out a knight to guard d5.",y:"Knight out!",x:"This turn was your chance to develop a knight.",t:"White's bishop pins your knight to your queen.",d:"The pin is annoying. Let's unpin."},
+  {m:'f8e7',r:'e2e3',i:'Break the pin',g:"Mission four: put a piece between your knight and your queen to break the pin.",y:"Unpinned! And your king is ready to castle.",x:"This turn was your chance to break the pin.",t:"White plays e3.",d:"Now if your knight moves, your queen isn't in danger."},
+  {m:'e8g8',r:'g1f3',i:'Castle early',gl:['g8'],g:"Mission five: castle!",y:"Castled!",x:"This turn was your chance to castle.",t:"White's knight comes out.",d:"A safe king is step one."},
+  {m:'h7h6',r:'g5h4',i:'Ask the question',g:"Mission six: ask White's bishop a question with a pawn: will you take, or will you go?",y:"h6 kicks the bishop and gives your king some air.",x:"This turn was your chance to kick White's bishop.",t:"White's bishop steps back to h4.",d:"Now White's bishop must decide."},
+  {m:'b7b6',r:'f1e2',i:'Make a fianchetto',sh:['c8b7'],g:"Mission seven: your light bishop is stuck. Make a nest for it on the queen side.",y:"The Tartakower! Your bishop will go to b7.",x:"This turn was your chance to prepare your light bishop's nest.",t:"White's bishop comes to e2.",d:"b6 and Bb7 give your bishop the long diagonal."},
+  {m:'c8b7',r:'h4f6',i:'Bishops on long roads',p:1,sh:['b7e4'],g:"Plan move one: put your bishop in its new nest.",y:"Your bishop on b7 aims at the center!",x:"This was the time to fianchetto your bishop.",t:"White takes your knight with the bishop.",d:"Now take back!"},
+  {m:'e7f6',r:'c4d5',i:'Take back right away',p:1,g:"Plan move two: take back with your bishop.",y:"Now you have two bishops!",x:"Your knight was captured. Take back!",t:"White trades on d5.",d:"Two bishops are strong in open positions."},
+  {m:'e6d5',r:'e1g1',i:'Take back toward the center',p:1,g:"Plan move three: take back on d5 with a pawn.",y:"Your center pawn is back on d5.",x:"Your pawn was captured. Take back!",t:"White castles.",d:"Now your f6 bishop and b7 bishop both see the center."},
+  {m:'c7c5',i:'Strike in the center',p:1,sh:['c5d4'],g:"Plan move four: strike White's center with your c-pawn!",y:"Strike! c5 frees your whole position.",x:"This was the time to strike with c5.",d:"c5 is the freeing move in the QGD. Your pieces breathe again."}
+]);
+
+defLesson('nimzo',{name:'Nimzo-Indian Defense',tag:'Pin the knight, rule e4',color:'b',lvl:3,first:'d2d4',
+  firstText:"White starts with d4. Your turn as Black!",
+  intro:"Welcome to the Nimzo-Indian! You pin White's knight right away to stop White from pushing e4. World champions love this defense. Let's learn it!",
+  outro:"Outstanding! You played the Nimzo-Indian. You gave White doubled pawns, grabbed a pawn, and struck the center with e5.",
+  finalDeeper:"The Nimzo's idea is control of e4. Bb4 pins the knight that would support e4. Trading on c3 gives White doubled pawns, a long-term weakness.",
+  summary:['Pin the knight that guards e4','Trade to give doubled pawns','Strike with c5 and d5','Hit the center with e5 at the right time']},[
+  {m:'g8f6',r:'c2c4',i:'Knights first',g:"Mission one: bring out a knight that controls e4.",y:"Knight out! It controls e4.",x:"This turn was your chance to develop a knight.",t:"White plays c4.",d:"The fight for e4 begins."},
+  {m:'e7e6',r:'b1c3',i:'Open the road for the bishop',sh:['f8b4'],g:"Mission two: open the road for your dark bishop.",y:"e6 opens the road!",x:"This turn was your chance to open your bishop's road.",t:"White's knight comes to c3, guarding e4.",d:"Now the Nimzo move is ready."},
+  {m:'f8b4',r:'e2e3',i:'Pin and pressure',sh:['b4c3','~c3e1'],g:"Mission three: here's the Nimzo! Pin the knight that guards e4.",y:"The Nimzo-Indian! The knight on c3 is pinned to White's king.",x:"This turn was your chance to pin the knight that guards e4.",t:"White plays e3.",d:"A pinned knight can't guard e4 properly."},
+  {m:'e8g8',r:'f1d3',i:'Castle early',gl:['g8'],g:"Mission four: castle!",y:"Castled!",x:"This turn was your chance to castle.",t:"White's bishop comes out.",d:"Early castling keeps you safe."},
+  {m:'d7d5',r:'g1f3',i:'Grab the center',g:"Mission five: grab the center with a pawn.",y:"d5 grabs the center!",x:"This turn was your chance to put a pawn in the center.",t:"White's knight comes out.",d:"Now d5 and the knight both fight for e4."},
+  {m:'c7c5',r:'e1g1',i:'Strike in the center',sh:['c5d4'],g:"Mission six: strike White's d4 pawn from the side.",y:"Strike! c5 hits d4.",x:"This turn was your chance to hit d4.",t:"White castles.",d:"Pressure on d4 keeps White busy."},
+  {m:'b8c6',r:'a2a3',i:'More pressure',g:"Mission seven: bring another piece to attack d4.",y:"d4 is attacked twice!",x:"This turn was your chance to add an attacker.",t:"White asks your bishop to decide.",d:"Now you must choose: retreat or trade."},
+  {m:'b4c3',r:'b2c3',i:'Trade to give doubled pawns',p:1,g:"Plan move one: trade your bishop for the knight.",y:"Traded! White now has doubled pawns on c3 and c2.",x:"Your bishop was attacked. This was the time to trade it.",t:"White takes back with the pawn.",d:"Doubled pawns are hard to protect later."},
+  {m:'d5c4',r:'d3c4',i:'Grab when allowed',p:1,g:"Plan move two: capture on c4!",y:"Trade! White's bishop had to move again.",x:"This was the time to capture.",t:"White's bishop takes back.",d:"Every time White recaptures, you gain a little time."},
+  {m:'d8c7',r:'c4d3',i:'Prepare the strike',p:1,sh:['c7e5'],g:"Plan move three: bring your queen to a square that supports e5.",y:"Queen to c7 backs up e5!",x:"This was the time to prepare the e5 strike.",t:"White's bishop steps back.",d:"The queen also watches c3, White's weak pawn."},
+  {m:'e6e5',i:'Strike in the center',p:1,g:"Plan move four: strike in the center!",y:"e5! Your pieces are all in the fight now.",x:"This was the time to strike with e5.",d:"e5 frees your light bishop and fights for the center."}
+]);
+
+defLesson('dutch',{name:'Dutch Defense',tag:'Grab e4 with the f-pawn',color:'b',lvl:3,first:'d2d4',
+  firstText:"White starts with d4. Your turn as Black!",
+  intro:"Welcome to the Dutch Defense! You push your f-pawn right away to fight for e4. It's bold and aggressive, perfect for players who love to attack!",
+  outro:"Tremendous! You played the Dutch. Your queen swung to g6 to attack, and you traded pieces in the center.",
+  finalDeeper:"The Dutch fights for e4 with the f-pawn. The queen often travels e8 to h5 or g6 to attack White's king. Watch out for e4 breaks from White.",
+  summary:['Fight for e4 with the f-pawn','Castle quickly','Queen to the king side for attack','Trade when White breaks the center']},[
+  {m:'f7f5',r:'g2g3',i:'Fight for e4',sh:['f5e4'],g:"Mission one: here's the Dutch! Push a pawn that controls e4, but not from the center.",y:"The Dutch! Your f-pawn controls e4.",x:"This turn was your chance to start the Dutch with the f-pawn.",ok:{d7d5:"A great move! But the Dutch uses the f-pawn to fight for e4."},t:"White prepares a fianchetto.",d:"f5 makes your king side a little open, so we'll castle quickly."},
+  {m:'g8f6',r:'f1g2',i:'Knights first',g:"Mission two: bring out a knight that also controls e4.",y:"Knight out! Two pieces on e4.",x:"This turn was your chance to develop a knight.",t:"White's bishop goes into its nest.",d:"White's bishop on g2 also eyes e4."},
+  {m:'e7e6',r:'g1f3',i:'Open the road for the bishop',g:"Mission three: open the road for your dark bishop.",y:"e6 opens the road!",x:"This turn was your chance to open your bishop's road.",t:"White's knight comes out.",d:"Get ready to castle quickly."},
+  {m:'f8e7',r:'e1g1',i:'Get ready to castle',g:"Mission four: bring out your bishop so you can castle.",y:"Bishop out!",x:"This turn was your chance to develop and prepare to castle.",t:"White castles.",d:"Castle next!"},
+  {m:'e8g8',r:'c2c4',i:'Castle early',gl:['g8'],g:"Mission five: castle!",y:"Castled! Your king is safe.",x:"This turn was your chance to castle.",t:"White grabs space with c4.",d:"Now let's prepare the attack."},
+  {m:'d7d6',r:'b1c3',i:'Prepare e5',g:"Mission six: make a small pawn step that controls e5 and opens your light bishop.",y:"d6 controls e5!",x:"This turn was your chance to control e5.",t:"White's knight comes out.",d:"Later you might push e5."},
+  {m:'d8e8',r:'f1e1',i:'Queen to the attack',sh:['e8h5','e8g6'],g:"Mission seven: here's a Dutch trick! Move your queen one step to the side so she can swing to the king side.",y:"Queen to e8! Next she can go to h5 or g6.",x:"This turn was your chance to start your queen's journey.",t:"White's rook prepares e4.",d:"The queen travels e8, then h5 or g6, toward White's king."},
+  {m:'e8g6',r:'e2e4',i:'Queen to the attack',p:1,sh:['g6g2'],g:"Plan move one: swing your queen to the king side, aiming at g2.",y:"Queen to g6! She stares at White's king side.",x:"This was the time to bring your queen into the attack.",t:"White breaks with e4!",d:"White strikes back at your f5 pawn."},
+  {m:'f5e4',r:'c3e4',i:'Trade in the center',p:1,g:"Plan move two: capture on e4!",y:"Capture!",x:"This was the time to capture.",t:"White's knight takes back.",d:"Now trade off White's strong knight."},
+  {m:'f6e4',r:'e1e4',i:'Trade to break the pressure',p:1,g:"Plan move three: trade knights on e4.",y:"Traded!",x:"This was the time to trade knights.",t:"White's rook takes back.",d:"White's rook on e4 is a little exposed."},
+  {m:'b8c6',i:'Wake up every piece',p:1,g:"Plan move four: wake up your last knight.",y:"All your pieces are joining the game!",x:"This was the time to develop your last knight.",d:"Next, your bishop can come to f5 and attack the rook on e4."}
+]);
+
+defLesson('twoknights',{name:'Two Knights Defense',tag:'Black meets the Italian',color:'b',lvl:2,first:'e2e4',
+  firstText:"White starts with e4. Your turn as Black!",
+  intro:"Welcome to the Two Knights Defense! When White plays the Italian bishop, you answer with two knights and fight back. You'll also learn how to chase away White's strong bishop!",
+  outro:"Splendid! You played the Two Knights. You got rid of White's best bishop and built a strong position.",
+  finalDeeper:"Against the Italian, the bishop on c4 is White's best piece. Your plan was Na5 to trade it, then c6, Re8 and Bf8 to build a solid position.",
+  summary:['Develop knights first','Castle early','Trade off the strong bishop','Make room for your pieces with c6']},[
+  {m:'e7e5',r:'g1f3',i:'Grab the center',g:"Mission one: grab the center with a pawn.",y:"Good!",x:"This turn was your chance to grab the center.",t:"White's knight attacks e5.",d:"Defend it next!"},
+  {m:'b8c6',r:'f1c4',i:'Knights first',g:"Mission two: defend e5 with a knight.",y:"Knight out!",x:"This turn was your chance to defend with a knight.",t:"White's bishop comes to c4. That's the Italian!",d:"White's bishop aims at f7."},
+  {m:'g8f6',r:'d2d3',i:'Counterattack',sh:['f6e4'],g:"Mission three: bring out your other knight and attack e4!",y:"Two Knights! You attack e4.",x:"This turn was your chance to develop with a counterattack.",ok:{f8c5:"That's the Giuoco Piano, a great move! The Two Knights brings the knight first."},t:"White guards e4 with d3.",d:"White chose the quiet way. Now develop calmly."},
+  {m:'f8e7',r:'e1g1',i:'Get ready to castle',g:"Mission four: bring out your bishop so you can castle.",y:"Bishop out!",x:"This turn was your chance to prepare castling.",t:"White castles.",d:"Be7 is solid and safe."},
+  {m:'e8g8',r:'f1e1',i:'Castle early',gl:['g8'],g:"Mission five: castle!",y:"Castled!",x:"This turn was your chance to castle.",t:"White's rook goes to e1.",d:"Both kings are safe."},
+  {m:'d7d6',r:'c2c3',i:'Pawns make great bodyguards',g:"Mission six: guard e5 with a pawn and open your light bishop.",y:"Solid! d6 guards e5.",x:"This turn was your chance to guard e5 with a pawn.",t:"White plays c3 to make a hideout for the bishop.",d:"White wants to keep the bishop. Let's chase it before it hides."},
+  {m:'c6a5',r:'c4b3',i:'Hunt the strong bishop',p:1,sh:['a5c4'],g:"Plan move one: White's bishop on c4 is White's best piece. Jump a knight to attack it!",y:"Attack! The bishop must run.",x:"This was the time to attack White's strong bishop.",t:"White's bishop runs to b3.",d:"A knight on the edge is fine when it has a big job."},
+  {m:'a5b3',r:'a2b3',i:'Trade off the strong bishop',p:1,g:"Plan move two: trade your knight for that bishop!",y:"Gone! White's best bishop is off the board.",x:"This was the time to trade off White's strong bishop.",t:"White takes back with a pawn.",d:"Now f7 is much safer."},
+  {m:'c7c6',r:'b1d2',i:'Make room',p:1,g:"Plan move three: make a small pawn step that gives your queen room and controls d5.",y:"c6 gives your queen a road and prepares d5.",x:"This was the time to make room for your pieces.",t:"White's knight comes out.",d:"Small pawn moves can be big helpers."},
+  {m:'f8e8',r:'d2f1',i:'Rooks to the center',p:1,g:"Plan move four: put your rook on the center file.",y:"Rook to e8! It guards e5.",x:"This was the time to bring your rook to the center.",t:"White's knight heads for g3.",d:"Rooks guard center pawns from far away."},
+  {m:'e7f8',i:'Make room',p:1,g:"Plan move five: put your bishop on a square behind your king, where it guards the king side.",y:"A cozy home! The bishop guards your king, and your pieces are all connected.",x:"This was the time to tuck your bishop in.",d:"Bf8 is a classic defensive move. It guards g7 and h6."}
+]);
+
+/*@@END@@*/
 /* ---------------- Progress store (kept on this device) ---------------- */
 const PKEY='oq-progress-v1';
 function blankP(){return{lessons:{},puzzles:{},games:{played:0,won:0,lost:0,drawn:0},days:[]};}

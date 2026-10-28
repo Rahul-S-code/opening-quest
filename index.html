@@ -277,6 +277,9 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
 .bigtile:disabled{opacity:.6;cursor:default}
 .bigtile.stat strong{font-size:38px}
 .hubh{font-size:20px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.pzlevel{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:18px 0 4px;padding:12px 16px;border-radius:16px;background:var(--surface-2)}
+.pzlevel>span{font-weight:800}
+.pzlevel small{color:var(--muted);font-weight:700;font-size:13px;flex-basis:100%}
 .hubsub{font-family:var(--f-body);font-size:13px;font-weight:700;color:var(--muted)}
 .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .chipcard{position:relative;overflow:hidden;display:flex;flex-direction:column;text-align:left;border:2px solid transparent;background:var(--surface);border-radius:16px;padding:12px 14px 16px;box-shadow:var(--shadow)}
@@ -1615,9 +1618,9 @@ function updateButtons(){
 /* ---------------- Rendering bits ---------------- */
 function renderInfo(){
   if(mode==='puzzle'){
-    if(!PZ)return;$('lessonName').textContent=PZ.title;
+    if(!PZ)return;$('lessonName').textContent=pzLevel()==='hard'&&!PZ.lesson?'Find the best move':PZ.title;
     const where=phase==='done'?'All done!':`Puzzle ${Math.min(pzI+1,pzQueue.length)} of ${pzQueue.length}`+(pzSession?` · ${pzSession.title}`:'');
-    $('stepInfo').innerHTML=`<span class="tag ${me}">${me==='w'?'White':'Black'} to move</span><span>${where}</span>`;
+    $('stepInfo').innerHTML=`<span class="tag ${me}">${me==='w'?'White':'Black'} to move</span><span>${where} · ${PZ_LEVELS[pzLevel()][0]}</span>`;
     const pr=$('progress');pr.innerHTML='';
     pzQueue.forEach((p,i)=>{const d=document.createElement('span');d.className='seg'+(i<pzI||(i===pzI&&(phase==='solved'||phase==='done'))?' done':'')+(i===pzI&&phase!=='done'&&phase!=='solved'?' cur':'');pr.appendChild(d);});
     renderStars();return;
@@ -2819,7 +2822,7 @@ const TRAPS=[
 ];
 function lessonLine(l){return(l.first?[l.first]:[]).concat(...l.steps.map(x=>x.r?[x.m,x.r]:[x.m]));}
 function lineTo(l,n){const out=l.first?[l.first]:[];for(let k=0;k<n;k++){out.push(l.steps[k].m);if(l.steps[k].r)out.push(l.steps[k].r);}return out;}
-const stripMission=g=>g.replace(/^(Mission|Plan move) [a-z]+: /i,'').replace(/^./,c=>c.toUpperCase());
+const stripMission=g=>g.replace(/^(Final mission|Final plan move|Mission [a-z]+|Plan move [a-z]+|Plan move): /i,'').replace(/^./,c=>c.toUpperCase());
 const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 // One puzzle per position in the opening, starting after move two. Each asks for at most two moves.
 function lessonPuzzles(id){
@@ -2856,6 +2859,12 @@ function recordPuzzle(id,first){
   r.seen++;if(first){r.solved++;r.box=Math.min(r.box+1,5);}else r.box=1;
   const d=new Date();d.setDate(d.getDate()+BOXDAYS[r.box]);r.due=dayKey(d);markDay();saveP();
 }
+const PZ_LEVELS={easy:['Easy','Grandpa explains what you built, shows the plan and guides you.'],medium:['Medium','Grandpa gives a short goal. Ask for a hint if you need one.'],hard:['Hard','Just the board. Grandpa asks what you would play and cheers you on.']};
+function pzLevel(){let v=P&&P.pzLevel;if(!v)try{v=localStorage.getItem('oq-pzlevel');}catch(e){}return PZ_LEVELS[v]?v:'easy';}
+function setPzLevel(v){P.pzLevel=v;try{localStorage.setItem('oq-pzlevel',v);}catch(e){}saveP();}
+const CHEER=["What would you play here? Take your time. I know you can find it!","Your move! What's the best idea in this position? Trust yourself.","Have a good look at the whole board. What would you play?","You've seen this opening before. What comes next? You can do it!"];
+const pick=a=>a[Math.random()*a.length|0];
+const shortGoal=g=>stripMission(g).split(/(?<=[.!?])\s/)[0].replace(/^./,c=>c.toLowerCase());
 let mode='lesson',PZ=null,pzQueue=[],pzI=0,pzStep=0,pzSession=null;
 function startPuzzles(list,title){if(!list.length)return;pzQueue=list;pzI=0;pzSession={title,done:0,first:0};showStage('puzzle');loadPuzzle();}
 function loadPuzzle(){
@@ -2867,7 +2876,10 @@ function loadPuzzle(){
   const lm=hist[hist.length-1];if(lm){marks('last',[lm.m.from,lm.m.to]);drawMovePath(lm.m,'black');}
   pzStep=0;tries=0;hintLevel=0;phase='await';scriptEl.innerHTML='';lastEntry=null;
   renderInfo();renderMoves();updateButtons();
-  if(!PZ.lesson){say('mission',`Puzzle ${pzI+1} of ${pzQueue.length}`,`${me==='w'?'White':'Black'} to move. ${PZ.prompt}`);return;}
+  const lv=pzLevel(),side=me==='w'?'White':'Black';
+  if(lv==='hard'){say('mission',`Your move · ${pzI+1} of ${pzQueue.length}`,`You're ${side}. ${pick(CHEER)}`+(PZ.sol.length>1?' Find two good moves in a row.':''));return;}
+  if(!PZ.lesson){say('mission',`Puzzle ${pzI+1} of ${pzQueue.length}`,`${side} to move. ${lv==='medium'?(PZ.short||PZ.prompt.split(/(?<=[.!?])\s/)[0]+' What would you play?'):PZ.prompt}`);return;}
+  if(lv==='medium'){say('mission',`Your move · position ${pzI+1} of ${pzQueue.length}`,`A position from the ${LESSONS[PZ.lesson].name}. You're ${side}. Your goal: ${shortGoal(PZ.steps[0].goal)}`+(PZ.sol.length>1?' Then one more move!':''));return;}
   const my=run;phase='busy';updateButtons();clearArrow();showRecap(PZ);
   say('intro','What we built so far',recapText(PZ)).then(()=>{
     if(my!==run)return;marks('good');
@@ -2891,8 +2903,9 @@ async function puzzleRight(m,watched){
     if(rm){sans.push(sanOf(st,rm));doMove(rm);drawMovePath(rm,'black');renderMoves();}
     pzStep++;marks('glow');phase='await';updateButtons();
     const nx=PZ.steps?PZ.steps[pzStep]:null,rt=PZ.steps?PZ.steps[pzStep-1].replyText:'';
-    if(nx)marks('glow',nx.glow.map(S));
-    say('mission','One more move',nx?`${rt} Now your second move: ${stripMission(nx.goal)}`:`${OPP} replied. Now find the next move!`);return;
+    const lv=pzLevel();
+    if(nx&&lv==='easy')marks('glow',nx.glow.map(S));
+    say('mission','One more move',lv==='hard'?`${OPP} replied. Great start! What would you play now?`:nx?(lv==='easy'?`${rt} Now your second move: ${stripMission(nx.goal)}`:`${OPP} replied. Your next goal: ${shortGoal(nx.goal)}`):`${OPP} replied. Now find the next move!`);return;
   }
   recordPuzzle(PZ.id,tries===0);pzSession.done++;if(tries===0)pzSession.first++;
   phase='solved';marks('glow');renderInfo();updateButtons();if(tries===0)confetti();
@@ -2910,9 +2923,13 @@ async function puzzleWrong(m,key,before){
   if(cur.ok&&cur.ok[key]){kind='ok';text=cur.ok[key];}
   else if(cur.wrong&&cur.wrong[key])text=cur.wrong[key];
   else text=genericAdvice(m,PZ.steps?cur:st0,before);
+  if(pzLevel()==='hard'){const ss=text.split(/(?<=[.!?])\s/);text=kind==='ok'?"Good idea! That move works too, but there's an even better one.":ss[0].length<40&&ss[1]?ss[0]+' '+ss[1]:ss[0];}
   marks(kind==='ok'?'okm':'bad',[m.from,m.to]);drawMovePath(m,kind==='ok'?'ok':'danger');sfx(kind==='ok'?'move':'bad');
   await Promise.all([say(kind,kind==='ok'?'Good idea, but…':'Not quite',text),wait(1500)]);if(my!==run)return;
   marks('bad');marks('okm');clearArrow();undoMove();phase='await';updateButtons();
+  const lv=pzLevel();
+  if(lv==='hard'){say('missed','Try again',tries>=3?"You're working hard! Want a little help? Press Hint, or keep trying. Every try makes you stronger.":pick(["Have another look. You're close!","Good try! There's an even better move. Keep looking!","Nice thinking. Can you find a stronger idea?"]));return;}
+  if(lv==='medium'){say('missed','Try again',tries>=3?"Tricky one! Press Hint if you'd like a clue.":"Look carefully and try again!");return;}
   if(tries>=2){showClue(st0,tries>=3?2:1);say('missed','Try again',clue(st0,tries>=3?2:1));}
   else say('missed','Try again',(kind==='bad'&&cur.missed?cur.missed+' ':'')+"Look carefully and try again!");
 }
@@ -3089,6 +3106,10 @@ function renderPuzzleHub(){
   <button class="bigtile" id="pzTraps" type="button"><strong>Opening traps</strong><span>${TRAPS.length} famous tricks, and how to stop them</span></button>
   <div class="bigtile stat"><strong>${solved}</strong><span>puzzles solved on the first try</span></div>`;
   el.appendChild(top);
+  const lv=pzLevel(),lb=document.createElement('div');lb.className='pzlevel';
+  lb.innerHTML=`<span>Grandpa's help</span><div class="seg" role="group" aria-label="Puzzle difficulty">${Object.entries(PZ_LEVELS).map(([v,[t]])=>`<button type="button" data-v="${v}" aria-pressed="${lv===v}">${t}</button>`).join('')}</div><small>${PZ_LEVELS[lv][1]}</small>`;
+  lb.querySelectorAll('button').forEach(b=>b.onclick=()=>{setPzLevel(b.dataset.v);renderPuzzleHub();});
+  el.appendChild(lb);
   const h=document.createElement('h3');h.className='hubh';h.innerHTML='Puzzles from each opening <span class="hubsub">5 random positions, two moves each</span>';el.appendChild(h);
   const g=document.createElement('div');g.className='chips';
   ORDER.forEach(id=>{const ps=lessonPuzzles(id),done=ps.filter(p=>P.puzzles[p.id]&&P.puzzles[p.id].solved).length;
@@ -3190,6 +3211,7 @@ function mergeP(a,b){
   for(const src of[a,b])for(const[id,r]of Object.entries(src.puzzles||{})){const x=m.puzzles[id];if(!x||(r.seen||0)>(x.seen||0))m.puzzles[id]=Object.assign({},r);}
   for(const k of['played','won','lost','drawn'])m.games[k]=Math.max((a.games||{})[k]||0,(b.games||{})[k]||0);
   m.days=[...new Set([...(a.days||[]),...(b.days||[])])].sort().slice(-400);
+  m.pzLevel=b.pzLevel||a.pzLevel;
   return m;
 }
 async function afterLogin(){

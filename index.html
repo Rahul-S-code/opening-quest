@@ -1379,7 +1379,7 @@ function renderVoiceBtn(){
   const b=$('voiceBtn');b.setAttribute('aria-pressed',voiceOn);
   b.innerHTML=(voiceOn?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>Sound on':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>Sound off');
 }
-$('voiceBtn').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('oq-voice',voiceOn?'on':'off');}catch(e){}if(!voiceOn&&hasTTS)speechSynthesis.cancel();renderVoiceBtn();};
+$('voiceBtn').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('oq-voice',voiceOn?'on':'off');}catch(e){}if(!voiceOn){if(hasTTS)speechSynthesis.cancel();if(stopChunk)stopChunk();}renderVoiceBtn();};
 let actx=null;
 function sfx(kind){
   if(!voiceOn)return;
@@ -1408,11 +1408,26 @@ function eat(f){const bs=document.querySelectorAll('#turn .bite'),k=Math.round(f
 function updateTurn(){const t=$('turn');if(!t)return;const go=!speaking&&phase==='await';
   t.classList.toggle('done',go);t.classList.toggle('go',go);t.classList.toggle('idle',!speaking&&!go);
   $('turnLab').textContent=go?'Your move!':speaking?'Listen':'Wait';if(!speaking)eat(go?1:0);}
-function talking(on){speaking=on;if(on)eat(0);updateTurn();$('avatar').classList.toggle('talk',on);$('talkState').textContent=on?(voiceOn&&hasTTS?'Speaking':'Reading'):'Ready';}
+function talking(on){speaking=on;if(on)eat(0);updateTurn();$('avatar').classList.toggle('talk',on);$('talkState').textContent=on?(voiceOn&&(hasTTS||REC)?'Speaking':'Reading'):'Ready';}
+/* Recorded voice: fixed sentences are pre-recorded MP3s in audio/, named by a hash of the sentence.
+   audio/manifest.json lists them. Anything not recorded (or if the files can't load) uses the browser voice. */
+const vkey=t=>{t=t.trim().replace(/\s+/g,' ');let h=0x811c9dc5;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h.toString(16).padStart(8,'0');};
+let REC=null;const recEl=new Audio();recEl.preload='auto';
+fetch('audio/manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&Array.isArray(m.files))REC=new Set(m.files);}).catch(()=>{});
+const hasRec=t=>!!(REC&&REC.has(vkey(t)));
+const warmRec=t=>{if(voiceOn&&hasRec(t))fetch('audio/'+vkey(t)+'.mp3').catch(()=>{});};
+document.addEventListener('pointerdown',function unlock(){recEl.muted=true;recEl.play().catch(()=>{}).finally(()=>{recEl.pause();recEl.muted=false;});document.removeEventListener('pointerdown',unlock);},{once:true});
 function speakChunk(text){
   return new Promise(res=>{
-    let done=false,w;const fin=()=>{if(done)return;done=true;clearTimeout(w);stopChunk=null;res();};
+    let done=false,w;const fin=()=>{if(done)return;done=true;clearTimeout(w);stopChunk=null;recEl.onended=recEl.onerror=null;try{recEl.pause();}catch(e){}res();};
     stopChunk=fin;
+    if(voiceOn&&hasRec(text)){
+      recEl.onended=fin;recEl.onerror=()=>{REC.delete(vkey(text));done=true;clearTimeout(w);speakChunk(text).then(res);};
+      recEl.src='audio/'+vkey(text)+'.mp3';
+      w=setTimeout(fin,text.length*140+6000);
+      recEl.play().catch(()=>{if(!done&&recEl.onerror)recEl.onerror();});
+      return;
+    }
     if(!voiceOn||!hasTTS){w=setTimeout(fin,Math.max(1100,text.length*55));return;}
     const t=text.trim(),u=new SpeechSynthesisUtterance(t),nat=voice&&NATURAL.test(voice.name),ex=/!\s*$/.test(t);
     if(voice){u.voice=voice;u.lang=voice.lang;}else u.lang='en-GB';
@@ -1428,12 +1443,12 @@ async function say(kind,label,text,reuse){
   if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();
   scriptEl.querySelectorAll('.s.now').forEach(x=>x.classList.remove('now'));
   const e=reuse||addEntry(kind,label,fill(text));lastEntry=e;setCur(e);talking(true);updateButtons();
-  const spans=[...e.querySelectorAll('.s')];
+  const spans=[...e.querySelectorAll('.s')];spans.forEach(s=>warmRec(s.textContent));
   for(let i=0;i<spans.length;i++){
     if(my!==sayToken)return;
     spans.forEach((s,j)=>s.classList.toggle('now',j===i));eat(i/spans.length);
     await speakChunk(spans[i].textContent);
-    if(i<spans.length-1&&voiceOn&&hasTTS)await wait(240);
+    if(i<spans.length-1&&voiceOn&&(hasTTS||REC))await wait(240);
   }
   if(my===sayToken){eat(1);spans.forEach(s=>s.classList.remove('now'));await wait(250);if(my===sayToken)talking(false);}
 }

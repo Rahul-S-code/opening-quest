@@ -186,6 +186,10 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 .summary h4{margin:0 0 6px;font-size:18px}
 .summary ul{margin:0;padding-left:20px;font-weight:700}
 .summary .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.keepplay{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--surface);border:2px dashed var(--line)}
+.keepplay h4{margin:0 0 2px}
+.keepplay p{margin:0 0 8px;font-weight:700;font-size:14px;color:var(--muted)}
+.keepplay .chip-btn small{font-weight:600;color:var(--muted)}
 
 .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
 .ctl{border:none;border-radius:16px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--surface-2);transition:transform .12s}
@@ -1578,14 +1582,20 @@ function finish(){
   const reps=addRep(lessonId,stars),n=L.steps.length;
   const starLine=stars===n?` You earned all ${n} stars without a single mistake. I'm so proud of you!`:` You earned ${stars} out of ${n} stars. Play again to collect them all!`;
   const quickLine=quick?` And you got ${quick} think-ahead ${quick===1?'sticker':'stickers'} for moving before I finished talking!`:'';
-  say('win','Lesson complete!',vx(L.outro,'outro')+starLine+quickLine+` That was practice number ${reps} for this opening.`+nextLevelNote(reps));
+  say('win','Lesson complete!',vx(L.outro,'outro')+starLine+quickLine+` That was practice number ${reps} for this opening.`+nextLevelNote(reps)+' Do you want to keep playing this game against my computer, right to the very end? Pick how strong it should be!');
   const box=document.createElement('div');box.className='summary';
   box.innerHTML=`<h4>Practice #${reps} · ${levelOf(reps)}</h4><div class="bar" style="margin:4px 0 10px"><i style="--w:${Math.min(100,reps/GOAL*100)}%"></i></div><h4>What you learned</h4><ul>`+L.summary.map(s=>'<li>'+s+'</li>').join('')+'</ul><div class="row"></div>';
   const row=box.querySelector('.row');
   const again=document.createElement('button');again.className='chip-btn';again.type='button';again.textContent='Play it again';again.onclick=()=>startLesson(lessonId);row.appendChild(again);
   const nx=ORDER[(ORDER.indexOf(lessonId)+1)%ORDER.length];
   const b=document.createElement('button');b.className='chip-btn';b.type='button';b.textContent='Next: '+LESSONS[nx].name;b.onclick=()=>startLesson(nx);row.appendChild(b);
-  [['Puzzles from this opening',()=>startPuzzles(openingRounds(lessonId),L.name)],['Play it in a game',()=>startGame({color:L.color,level:'gentle',lesson:lessonId})],['All openings',()=>goHome('lessons')]].forEach(([t,f])=>{const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent=t;h.onclick=f;row.appendChild(h);});
+  [['Puzzles from this opening',()=>startPuzzles(openingRounds(lessonId),L.name)],['Play it in a game',()=>startGame({color:L.color,level:'novice',lesson:lessonId})],['All openings',()=>goHome('lessons')]].forEach(([t,f])=>{const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent=t;h.onclick=f;row.appendChild(h);});
+  const kp=document.createElement('div');kp.className='keepplay';
+  kp.innerHTML='<h4>Keep playing this game</h4><p>Carry on from this exact position against the computer, all the way to checkmate.</p><div class="row"></div>';
+  const keep={st,hist:hist.slice(),sans:sans.slice()};
+  LEVEL_KEYS.forEach(k=>{const b=document.createElement('button');b.className='chip-btn';b.type='button';b.dataset.level=k;b.innerHTML=`${LEVELS_AI[k].name} <small>${LEVELS_AI[k].short}</small>`;
+    b.onclick=()=>startGame({color:L.color,level:k,lesson:lessonId,from:keep});kp.querySelector('.row').appendChild(b);});
+  box.prepend(kp);
   scriptEl.appendChild(box);
   confetti();
 }
@@ -1659,7 +1669,7 @@ function updateButtons(){
     $('deepBtn').disabled=!(a||phase==='solved');$('restartBtn').disabled=phase==='done'||phase==='busy';
   }else if(mode==='game'){
     $('playBtn').disabled=!a;$('hintBtn').disabled=!a;
-    $('deepBtn').disabled=!((a||phase==='done')&&hist.some(h=>h.st.turn===me));$('restartBtn').disabled=false;
+    $('deepBtn').disabled=!((a||phase==='done')&&GM&&hist.slice(GM.base).some(h=>h.st.turn===me));$('restartBtn').disabled=false;
   }else{
     $('playBtn').disabled=!a;$('hintBtn').disabled=!a;
     $('deepBtn').disabled=!(a||phase==='done');
@@ -1680,9 +1690,9 @@ function renderInfo(){
     renderStars();return;
   }
   if(mode==='game'){
-    if(!GM)return;$('lessonName').textContent=GM.lesson?'Playing the '+LESSONS[GM.lesson].name:'Game with Grandpa';
+    if(!GM)return;$('lessonName').textContent=GM.lesson?(GM.cont?'Keep playing: ':'Playing the ')+LESSONS[GM.lesson].name:'Game with Grandpa';
     const mv=Math.floor(hist.length/2)+1;
-    $('stepInfo').innerHTML=`<span class="tag ${me}">You play ${me==='w'?'White':'Black'}</span><span>${GM.over?'Game over':'Move '+mv}</span><span class="tag">${GM.level==='tricky'?'Tricky':'Gentle'} computer</span>`;
+    $('stepInfo').innerHTML=`<span class="tag ${me}">You play ${me==='w'?'White':'Black'}</span><span>${GM.over?'Game over':'Move '+mv}</span><span class="tag">${LEVELS_AI[GM.level].name} computer</span>`;
     return;
   }
   if(!L)return;$('lessonName').textContent=L.name;
@@ -10401,22 +10411,53 @@ function search(s,depth,a,b,ply){
   for(const m of order(ms)){const v=-search(make(s,m),depth-1,-b,-a,ply+1);if(v>a){a=v;if(a>=b)break;}}
   return a;
 }
+/* Three computer levels, from a beginner who misses things to a good club player. */
+const LEVELS_AI={
+  novice:{name:'Novice',short:'just learning',say:'a beginner, just like a new chess friend',depth:1,noise:220,slip:.2},
+  improver:{name:'Improver',short:'plays sensibly',say:'an improving player who spots simple tricks',depth:2,noise:35,slip:0},
+  good:{name:'Good player',short:'a real challenge',say:'a good player who thinks a few moves ahead',depth:4,noise:0,slip:0,ms:2500}
+};
+const LEVEL_KEYS=Object.keys(LEVELS_AI);
+const lvKey=k=>LEVELS_AI[k]?k:k==='tricky'?'improver':'novice';
 function bestMove(s,level){
-  const depth=level==='tricky'?2:1,noise=level==='tricky'?20:90;let best=null,bv=-1e9;
-  for(const m of order(legal(s))){const v=-search(make(s,m),depth-1,-1e9,1e9,1)+Math.random()*noise;if(v>bv){bv=v;best=m;}}
+  const lv=LEVELS_AI[lvKey(level)],ms=order(legal(s));if(!ms.length)return null;
+  if(lv.slip&&Math.random()<lv.slip)return ms[Math.random()*ms.length|0];
+  if(lv.noise){let best=null,bv=-1e9;
+    for(const m of ms){const v=-search(make(s,m),lv.depth-1,-1e9,1e9,1)+Math.random()*lv.noise;if(v>bv){bv=v;best=m;}}
+    return best;}
+  // Strong level: deepen one ply at a time and stop when the time runs out, keeping the last finished answer.
+  const end=Date.now()+(lv.ms||2000);let best=ms[0];
+  for(let d=1;d<=lv.depth;d++){
+    if(d>1&&Date.now()>end-(lv.ms||2000)*.6)break;
+    let a=-1e9,b=null;const list=[best,...ms.filter(m=>m!==best)];
+    for(const m of list){const v=-search(make(s,m),d-1,-1e9,-a,1);if(v>a||!b){a=v;b=m;}if(Date.now()>end&&d>1){b=null;break;}}
+    if(b)best=b;else break;
+  }
   return best;
 }
+const posKey=s=>s.b.map(p=>p?p.c+p.t:'.').join('')+s.turn+['K','Q','k','q'].map(k=>s.cr[k]?k:'').join('')+s.ep;
 let GM=null;
 function startGame(opts){
   lastGame=Object.assign({},opts);if(hasTTS)speechSynthesis.cancel();showStage('game');run++;
-  me=opts.color==='r'?(Math.random()<.5?'w':'b'):opts.color;OPP=me==='w'?'Black':'White';flip=me==='b';
+  me=opts.color==='r'?(Math.random()<.5?'w':'b'):opts.color;
   const lines=(opts.lesson?[opts.lesson]:ORDER).map(id=>({id,line:lessonLine(LESSONS[id])}));
-  GM={level:opts.level,lesson:opts.lesson||null,lines,childN:0,castled:false,warnedCastle:false,credited:{},lastThreat:null,over:false};
-  buildGrid();st=startState();hist=[];sans=[];clearAllMarks();clearArrow();renderPieces();
+  if(opts.from)me=opts.color;OPP=me==='w'?'Black':'White';flip=me==='b';
+  GM={level:lvKey(opts.level),lesson:opts.lesson||null,lines,childN:0,castled:false,warnedCastle:false,credited:{},lastThreat:null,over:false,base:0,cont:!!opts.from};
+  buildGrid();clearAllMarks();clearArrow();
+  if(opts.from){
+    st=opts.from.st;hist=opts.from.hist.slice();sans=opts.from.sans.slice();GM.base=hist.length;
+    GM.childN=hist.filter(h=>h.st.turn===me).length;GM.castled=GM.warnedCastle=kingSq(st,me)!==(me==='w'?4:60);
+    if(opts.lesson)GM.credited[opts.lesson]=true;
+    const lm=hist[hist.length-1];if(lm)marks('last',[lm.m.from,lm.m.to]);
+  }else{st=startState();hist=[];sans=[];}
+  renderPieces();
   scriptEl.innerHTML='';lastEntry=null;phase='busy';renderInfo();renderMoves();updateButtons();
-  const my=run,practise=opts.lesson?` I'll play the ${LESSONS[opts.lesson].name} with you, so you can practise it in a real game.`:'';
-  say('intro',"Let's play a game!",`Now we play a real game, my young friend. You are ${me==='w'?'White':'Black'}.${practise} I'll give you tips along the way. If you make a mistake, you can press Take back.`).then(()=>{
-    if(my!==run)return;if(me==='w'){phase='await';updateButtons();}else computerMove();
+  const my=run,lv=LEVELS_AI[GM.level],practise=opts.lesson&&!opts.from?` I'll play the ${LESSONS[opts.lesson].name} with you, so you can practise it in a real game.`:'';
+  const intro=opts.from
+    ?`Let's keep playing! The opening is done, so now we play the rest of this game, all the way to the end. My computer will play like ${lv.say}. Use the ideas you just learned: keep your king safe, and look for pieces you can capture. If you make a mistake, you can press Take back.`
+    :`Now we play a real game, my young friend. You are ${me==='w'?'White':'Black'}.${practise} My computer will play like ${lv.say}. I'll give you tips along the way. If you make a mistake, you can press Take back.`;
+  say('intro',opts.from?'Keep playing!':"Let's play a game!",intro).then(()=>{
+    if(my!==run)return;if(st.turn===me){phase='await';updateButtons();}else computerMove();
   });
 }
 function histKeys(){return hist.map(h=>N(h.m.from)+N(h.m.to));}
@@ -10429,12 +10470,13 @@ function bookMove(){
 function checkGameOver(){
   const ms=legal(st);let res=null;
   if(!ms.length)res=inCheck(st)?(st.turn===me?'lost':'won'):'drawn';
-  else if(st.b.filter(Boolean).length===2||hist.length>=300)res='drawn';
+  else{const left=st.b.filter(p=>p&&p.t!=='k');const k=posKey(st);
+    if(!left.length||(left.length===1&&(left[0].t==='n'||left[0].t==='b'))||hist.length>=400||hist.filter(h=>posKey(h.st)===k).length>=2)res='drawn';}
   if(!res)return false;
   GM.over=true;phase='done';P.games.played++;P.games[res]++;markDay();saveP();updateButtons();renderInfo();
   const msg={won:"Checkmate! You won the game! I'm so proud of you. Every opening idea you practised helped you get here.",
     lost:"Checkmate. This time I won, but that's how we learn! Press New game and try again. Remember: develop your pieces, castle early, and watch out for pieces that can be captured.",
-    drawn:"It's a draw! Nobody can win this position. A draw against a tricky opponent is a good result."}[res];
+    drawn:"It's a draw! Nobody can win from here. A draw is a good result, well played!"}[res];
   if(res==='won'){sfx('win');confetti();}
   say(res==='won'?'win':res==='lost'?'bad':'intro',res==='won'?'You won!':res==='lost'?'Game over':'Draw',msg);
   return true;
@@ -10492,12 +10534,13 @@ async function computerMove(){
 }
 function gameTakeBack(){
   if(phase!=='await'&&!(phase==='done'&&GM&&GM.over))return;
-  let n=0;while(hist.length&&n<2){const last=hist[hist.length-1];undoMove();sans.pop();n++;if(last.st.turn===me)break;}
+  if(hist.length<=GM.base||!hist.slice(GM.base).some(h=>h.st.turn===me))return;
+  let n=0;while(hist.length>GM.base&&n<2){const last=hist[hist.length-1];undoMove();sans.pop();n++;if(last.st.turn===me)break;}
   GM.childN=Math.max(0,GM.childN-1);GM.over=false;clearArrow();marks('hint');renderMoves();phase='await';updateButtons();renderInfo();
   say('intro','Take back','No problem, everyone needs a second try sometimes. Your move again!');
 }
 function gameAdvice(show){
-  if(phase!=='await')return;const m=bestMove(st,'tricky');if(!m)return;
+  if(phase!=='await')return;const m=bestMove(st,'improver');if(!m)return;
   clearArrow();
   if(show){drawMovePath(m,'move');say('watch','A good move',`Here's a good idea: move your ${NAME[m.piece]} along the orange path. Do you see why it helps?`);return;}
   marks('hint',[m.from]);
@@ -10552,7 +10595,7 @@ function renderPuzzleHub(){
   $('pzReview').onclick=()=>startPuzzles(dueReview(),'Daily review');
   $('pzTraps').onclick=()=>startPuzzles(TRAPS.slice(),'Opening traps');
 }
-let playOpts={color:'w',level:'gentle',lesson:''};
+let playOpts={color:'w',level:'novice',lesson:''};
 function renderPlay(){
   const el=$('tab-play');
   const opts=ORDER.filter(id=>playOpts.color==='r'||LESSONS[id].color===playOpts.color).map(id=>`<option value="${id}"${playOpts.lesson===id?' selected':''}>${LESSONS[id].name}</option>`).join('');
@@ -10562,7 +10605,7 @@ function renderPlay(){
       <h3>Play a real game with Grandpa Rook</h3>
       <p>Use your opening ideas in a whole game. Grandpa gives tips as you play, and playing a full opening from your lessons counts as practice.</p>
       <div class="field"><span>I want to play</span><div class="seg" role="group" aria-label="Colour">${[['w','White'],['b','Black'],['r','Surprise me']].map(([v,t])=>`<button type="button" data-k="color" data-v="${v}" aria-pressed="${playOpts.color===v}">${t}</button>`).join('')}</div></div>
-      <div class="field"><span>Computer</span><div class="seg" role="group" aria-label="Level">${[['gentle','Gentle'],['tricky','Tricky']].map(([v,t])=>`<button type="button" data-k="level" data-v="${v}" aria-pressed="${playOpts.level===v}">${t}</button>`).join('')}</div></div>
+      <div class="field"><span>Computer</span><div class="seg" role="group" aria-label="Level">${LEVEL_KEYS.map(v=>`<button type="button" data-k="level" data-v="${v}" aria-pressed="${playOpts.level===v}">${LEVELS_AI[v].name}</button>`).join('')}</div></div>
       <div class="field"><label for="playLesson">Practise an opening</label><select id="playLesson" class="voicesel"><option value="">Any opening</option>${opts}</select></div>
       <button class="startbtn" id="startGame" type="button">Start the game</button>
     </div></div>`;

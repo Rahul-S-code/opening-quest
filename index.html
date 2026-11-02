@@ -186,10 +186,16 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 .summary h4{margin:0 0 6px;font-size:18px}
 .summary ul{margin:0;padding-left:20px;font-weight:700}
 .summary .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.keepplay{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--surface);border:2px dashed var(--line)}
-.keepplay h4{margin:0 0 2px}
-.keepplay p{margin:0 0 8px;font-weight:700;font-size:14px;color:var(--muted)}
-.keepplay .chip-btn small{font-weight:600;color:var(--muted)}
+.keeppop{position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding:4%;background:rgba(16,18,42,.45);animation:kpfade .3s ease}
+.keeppop .kpcard{display:block;width:min(92%,380px);background:var(--surface);color:var(--ink);border-radius:18px;padding:clamp(12px,4cqi,22px);box-shadow:0 18px 40px rgba(0,0,0,.35);text-align:center;animation:kppop .35s cubic-bezier(.2,1.4,.4,1)}
+.keeppop h3{margin:0 0 4px;font-family:var(--f-display);font-size:clamp(18px,5.5cqi,26px)}
+.keeppop p{margin:0 0 10px;font-weight:700;font-size:clamp(12px,3.4cqi,15px);color:var(--muted)}
+.keeppop .lv{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:0 0 7px;padding:clamp(7px,2.4cqi,11px) 14px;border:2px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--ink);font-weight:800;font-size:clamp(14px,4cqi,17px);cursor:pointer}
+.keeppop .lv:hover,.keeppop .lv:focus-visible{border-color:var(--accent)}
+.keeppop .lv small{font-weight:700;color:var(--muted);font-size:.8em}
+.keeppop .later{margin-top:2px;border:0;background:none;color:var(--muted);font-weight:800;text-decoration:underline;cursor:pointer;font-size:14px}
+@keyframes kpfade{from{opacity:0}}
+@keyframes kppop{from{transform:scale(.85);opacity:0}}
 
 .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
 .ctl{border:none;border-radius:16px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--surface-2);transition:transform .12s}
@@ -1590,14 +1596,22 @@ function finish(){
   const nx=ORDER[(ORDER.indexOf(lessonId)+1)%ORDER.length];
   const b=document.createElement('button');b.className='chip-btn';b.type='button';b.textContent='Next: '+LESSONS[nx].name;b.onclick=()=>startLesson(nx);row.appendChild(b);
   [['Puzzles from this opening',()=>startPuzzles(openingRounds(lessonId),L.name)],['Play it in a game',()=>startGame({color:L.color,level:'novice',lesson:lessonId})],['All openings',()=>goHome('lessons')]].forEach(([t,f])=>{const h=document.createElement('button');h.className='chip-btn';h.type='button';h.textContent=t;h.onclick=f;row.appendChild(h);});
-  const kp=document.createElement('div');kp.className='keepplay';
-  kp.innerHTML='<h4>Keep playing this game</h4><p>Carry on from this exact position against the computer, all the way to checkmate.</p><div class="row"></div>';
-  const keep={st,hist:hist.slice(),sans:sans.slice()};
-  LEVEL_KEYS.forEach(k=>{const b=document.createElement('button');b.className='chip-btn';b.type='button';b.dataset.level=k;b.innerHTML=`${LEVELS_AI[k].name} <small>${LEVELS_AI[k].short}</small>`;
-    b.onclick=()=>startGame({color:L.color,level:k,lesson:lessonId,from:keep});kp.querySelector('.row').appendChild(b);});
-  box.prepend(kp);
+  const keep={st,hist:hist.slice(),sans:sans.slice()},kb=document.createElement('button');
+  kb.className='chip-btn';kb.type='button';kb.textContent='Keep playing this game';kb.onclick=()=>showKeepPop(keep);row.prepend(kb);
   scriptEl.appendChild(box);
   confetti();
+  const my=run;setTimeout(()=>{if(my===run&&mode==='lesson'&&phase==='done')showKeepPop(keep);},700);
+}
+/* Pop-up in the middle of the board: carry on from the lesson's final position against the computer. */
+function closeKeepPop(){const p=$('keepPop');if(p)p.remove();}
+function showKeepPop(keep){
+  closeKeepPop();const p=document.createElement('div');p.className='keeppop';p.id='keepPop';
+  p.innerHTML=`<div class="kpcard" role="dialog" aria-modal="false" aria-labelledby="keepPopH"><h3 id="keepPopH">Keep playing?</h3><p>The opening is done! Play the rest of this game against the computer, all the way to the end.</p>`+
+    LEVEL_KEYS.map(k=>`<button class="lv" type="button" data-level="${k}">${LEVELS_AI[k].name}<small>${LEVELS_AI[k].short}</small></button>`).join('')+
+    `<button class="later" type="button">Not now</button></div>`;
+  p.querySelectorAll('.lv').forEach(b=>b.onclick=()=>{closeKeepPop();startGame({color:L.color,level:b.dataset.level,lesson:lessonId,from:keep});});
+  p.querySelector('.later').onclick=closeKeepPop;
+  $('board').appendChild(p);p.querySelector('.lv').focus({preventScroll:true});
 }
 function startLesson(id){
   run++;const my=run;lessonId=id;L=LESSONS[id];VER=repsOf(id)%5;
@@ -1622,6 +1636,7 @@ function startLesson(id){
   });
 }
 function goHome(tab){
+  closeKeepPop();
   run++;sayToken++;if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();talking(false);
   phase='idle';lessonId=null;L=null;mode='lesson';GM=null;
   document.body.classList.remove('lesson');$('home').hidden=false;$('stage').hidden=true;$('libBtn').hidden=true;showTab(typeof tab==='string'?tab:curTab());window.scrollTo(0,0);
@@ -10566,7 +10581,7 @@ function setControls(){
   $('stage').dataset.mode=mode;
 }
 function showStage(m){
-  mode=m;document.body.classList.add('lesson');$('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);setControls();
+  closeKeepPop();mode=m;document.body.classList.add('lesson');$('home').hidden=true;$('stage').hidden=false;$('libBtn').hidden=false;window.scrollTo(0,0);setControls();
 }
 function showTab(t){
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));

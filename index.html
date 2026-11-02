@@ -10513,7 +10513,7 @@ function creditOpenings(){
 function childComment(m,before){
   const n=GM.childN,base=me==='w'?0:56,home=(HOME[m.piece]||[]).map(x=>x+base);
   const h=biggestLoss(m.to);
-  if(h&&h.loss>=2)return{kind:'bad',label:'Careful!',text:`Watch out! ${OPP}'s ${NAME[h.by]} can capture your ${NAME[h.piece]} on ${N(h.sq)}${h.free?' for free':''}. You can press Take back and try a different move.`,path:N(h.from)+N(h.sq)};
+  if(h&&h.loss>=2)return{kind:'bad',label:'Careful!',text:`Watch out! ${OPP}'s ${NAME[h.by]} can capture your ${NAME[h.piece]}${h.free?' for free':''}. Look at ${N(h.sq)}. You can press Take back and try a different move.`,path:N(h.from)+N(h.sq)};
   if(m.castle){GM.castled=true;return{kind:'good',label:'Castled!',text:'Castled! Your king is safe in the corner, and your rook is ready to fight. Well done!'};}
   if(m.captured&&VAL[m.captured]>=3)return{kind:'good',label:'Nice capture!',text:`Nice capture! You won a ${NAME[m.captured]}.`};
   if(n<=10){
@@ -10545,7 +10545,7 @@ async function computerMove(){
   sans.push(sanOf(st,m));doMove(m);drawMovePath(m,'black');renderMoves();renderInfo();$('talkState').textContent='Ready';
   if(checkGameOver())return;
   const save=st;st={b:st.b,turn:me==='w'?'b':'w',cr:st.cr,ep:-1};const h=biggestLoss(-1);st=save;
-  if(h&&h.loss>=2&&GM.lastThreat!==h.from+'-'+h.sq){GM.lastThreat=h.from+'-'+h.sq;drawPath(N(h.from)+N(h.sq),'danger',300);say('missed','Watch out!',`Watch out! ${OPP}'s ${NAME[h.by]} is attacking your ${NAME[h.piece]} on ${N(h.sq)}.`);}
+  if(h&&h.loss>=2&&GM.lastThreat!==h.from+'-'+h.sq){GM.lastThreat=h.from+'-'+h.sq;drawPath(N(h.from)+N(h.sq),'danger',300);say('missed','Watch out!',`Watch out! ${OPP}'s ${NAME[h.by]} is attacking your ${NAME[h.piece]}. Look at ${N(h.sq)}.`);}
   else if(inCheck(st))say('missed','Check!',"You're in check! Your king is attacked. Move it, block the check, or capture the attacker.");
   phase='await';updateButtons();
 }
@@ -10562,7 +10562,7 @@ function gameAdvice(show){
   if(show){drawMovePath(m,'move');say('watch','A good move',`Here's a good idea: move your ${NAME[m.piece]} along the orange path. Do you see why it helps?`);return;}
   marks('hint',[m.from]);
   const castle=legal(st).some(x=>x.castle)&&!GM.castled;
-  say('mission','Advice',(castle?'Can you castle now? Your king would love to be safe. ':'')+`Here's a clue: think about your ${NAME[m.piece]} on ${N(m.from)}. Is anything attacked? Is a piece still asleep?`);
+  say('mission','Advice',(castle?'Can you castle now? Your king would love to be safe. ':'')+`Here's a clue: think about your ${NAME[m.piece]}. It's on ${N(m.from)}. Is anything attacked? Is a piece still asleep?`);
 }
 
 /* ---------------- Mode switching, controls and home tabs ---------------- */

@@ -1591,6 +1591,8 @@ function finish(){
 }
 function startLesson(id){
   run++;const my=run;lessonId=id;L=LESSONS[id];VER=repsOf(id)%5;
+  // Until a lesson's alternative scripts are recorded too, replay the recorded script so the child hears the real voice.
+  {const f=t=>(t.match(/[^.!?]+[.!?]+['"”]?/)||[t])[0];if(VER&&hasRec(f(L.intro))&&!hasRec(f(vx(L.intro,'intro'))))VER=0;}
   me=L.color||'w';OPP=me==='w'?'Black':'White';flip=me==='b';openN=L.steps.filter(s=>!s.plan).length;
   showStage('lesson');
   buildGrid();st=startState();hist=[];stepI=0;stars=0;quick=0;tries=0;ideas=[];sans=[];phase='busy';select(-1);

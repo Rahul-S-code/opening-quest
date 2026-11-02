@@ -90,6 +90,14 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 .starcount{font-family:var(--f-display);font-weight:800;font-size:20px;display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
 .starcount .st{color:var(--glow);font-size:24px;line-height:1}
 .starcount.pop .st{animation:pop .45s ease-out}
+#stage:not([data-mode="lesson"]) #quick{display:none}
+.starcount.quick .st{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--deep)}.starcount.quick .st svg{width:16px;height:16px;fill:var(--glow)}
+.qsticker{position:absolute;left:50%;top:44%;z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-50%);animation:qstick 1.9s ease-out forwards}
+.qsticker .disc{width:28cqw;height:28cqw;max-width:150px;max-height:150px;border-radius:50%;background:var(--deep);border:6px solid #fff;box-shadow:0 10px 30px rgba(40,30,110,.35);display:grid;place-items:center;transform:rotate(-8deg)}
+.qsticker .disc svg{width:58%;height:58%;fill:var(--glow)}
+.qsticker b{font-family:var(--f-display);font-size:clamp(17px,4.4cqw,26px);background:#fff;color:#3B2A8C;border-radius:999px;padding:2px 14px;box-shadow:0 6px 18px rgba(40,30,110,.25)}
+@keyframes qstick{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}28%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(.7)}}
+@media (prefers-reduced-motion: reduce){.qsticker{animation:qfade 1.9s linear forwards}@keyframes qfade{0%,80%{opacity:1}100%{opacity:0}}}
 @keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
 .progress{display:flex;gap:4px;align-items:center}
 .progress .seg{flex:1;height:10px;border-radius:5px;background:var(--surface-2)}
@@ -402,7 +410,7 @@ body.lesson #acctBtn{display:none}
     <div class="wide">
       <div class="boardhead">
         <div><h2 id="lessonName">Opening</h2><div class="sub" id="stepInfo"></div></div>
-        <div class="headright"><div class="turn" id="turn" role="status" aria-live="polite"><svg viewBox="0 0 64 64" aria-hidden="true"><g class="whole"><path class="body" d="M32 19C22 10 8 16 9 33C10 49 22 59 32 55C42 59 54 49 55 33C56 16 42 10 32 19Z"/><path class="shine" d="M18 28c1-5 4-8 8-9" /><circle class="bite" cx="54" cy="27" r="8"/><circle class="bite" cx="55" cy="40" r="8"/><circle class="bite" cx="46" cy="53" r="8"/><circle class="bite" cx="18" cy="53" r="8"/><circle class="bite" cx="9" cy="40" r="8"/><circle class="bite" cx="10" cy="27" r="8"/></g><g class="core"><circle class="glow" cx="32" cy="34" r="27"/><path d="M21 15C15 23 28 27 20 34C14 41 26 46 21 54H43C38 46 50 41 44 34C36 27 49 23 43 15Z"/><ellipse class="seed" cx="30" cy="33" rx="1.6" ry="2.6"/><ellipse class="seed" cx="34" cy="33" rx="1.6" ry="2.6"/></g><path class="stem" d="M32 19C32 13 33 9 36 6"/><path class="leaf" d="M34 11C38 5 46 5 49 8C45 13 39 14 34 11Z"/></svg><span id="turnLab">Listen</span></div><div class="starcount" id="stars" aria-live="polite"></div></div>
+        <div class="headright"><div class="turn" id="turn" role="status" aria-live="polite"><svg viewBox="0 0 64 64" aria-hidden="true"><g class="whole"><path class="body" d="M32 19C22 10 8 16 9 33C10 49 22 59 32 55C42 59 54 49 55 33C56 16 42 10 32 19Z"/><path class="shine" d="M18 28c1-5 4-8 8-9" /><circle class="bite" cx="54" cy="27" r="8"/><circle class="bite" cx="55" cy="40" r="8"/><circle class="bite" cx="46" cy="53" r="8"/><circle class="bite" cx="18" cy="53" r="8"/><circle class="bite" cx="9" cy="40" r="8"/><circle class="bite" cx="10" cy="27" r="8"/></g><g class="core"><circle class="glow" cx="32" cy="34" r="27"/><path d="M21 15C15 23 28 27 20 34C14 41 26 46 21 54H43C38 46 50 41 44 34C36 27 49 23 43 15Z"/><ellipse class="seed" cx="30" cy="33" rx="1.6" ry="2.6"/><ellipse class="seed" cx="34" cy="33" rx="1.6" ry="2.6"/></g><path class="stem" d="M32 19C32 13 33 9 36 6"/><path class="leaf" d="M34 11C38 5 46 5 49 8C45 13 39 14 34 11Z"/></svg><span id="turnLab">Listen</span></div><div class="starcount" id="stars" aria-live="polite"></div><div class="starcount quick" id="quick" aria-live="polite" hidden></div></div>
       </div>
       <div style="margin-top:10px"><div class="progress" id="progress"></div><div class="phases"><span>The opening</span><span class="p2">The plan</span></div></div>
     </div>
@@ -1319,7 +1327,7 @@ function select(s){
 }
 $('board').addEventListener('pointerdown',e=>{
   const s=sqAt(e.clientX,e.clientY);if(s<0||phase!=='await')return;
-  if(speaking){const t=$('turn');t.classList.remove('nudge');void t.offsetWidth;t.classList.add('nudge');return;}
+  if(speaking&&mode!=='lesson'){const t=$('turn');t.classList.remove('nudge');void t.offsetWidth;t.classList.add('nudge');return;}
   const t=targets.find(m=>m.to===s);
   if(sel>=0&&t){select(-1);userMove(t);return;}
   const p=st.b[s];
@@ -1473,31 +1481,49 @@ function userMove(m){
   if(mode==='puzzle')return puzzleMove(m);
   if(mode==='game')return gameMove(m);
   const step=L.steps[stepI],key=N(m.from)+N(m.to),before=st;
-  doMove(m);
-  if(key===step.m)correct(false);else wrong(m,key,step,before);
+  // A first-try move made before Grandpa finishes talking earns a think-ahead sticker.
+  const early=speaking&&tries===0&&hintLevel===0;
+  moveSeq++;doMove(m);
+  if(key===step.m)correct(false,early);else wrong(m,key,step,before);
 }
-async function correct(watched){
-  const my=run,step=L.steps[stepI];
+const QUICK_LINES=["Kid, it looks like you know what I want to say!","Good job thinking ahead!","You were one step ahead of me there!","I didn't even finish, and you already knew. Wonderful!","Ha! You read my mind, my friend.","Quick thinking! You saw the idea before I said it.","You're thinking like a real chess player, planning ahead!","My my, you're too fast for old Grandpa Rook!"];
+let quick=0,moveSeq=0;
+function hush(){sayToken++;if(stopChunk)stopChunk();if(hasTTS)speechSynthesis.cancel();scriptEl.querySelectorAll('.s.now').forEach(x=>x.classList.remove('now'));talking(false);}
+function quickSticker(){
+  quick++;renderStars();const q=$('quick');q.classList.remove('pop');void q.offsetWidth;q.classList.add('pop');
+  $('board').querySelectorAll('.qsticker').forEach(x=>x.remove());
+  const s=document.createElement('div');s.className='qsticker';s.innerHTML='<div class="disc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 13.5h6.5L9 22l10-12.5h-6.6z"/></svg></div><b>Thinking ahead!</b>';
+  $('board').appendChild(s);setTimeout(()=>s.remove(),2000);
+  P.quick=(P.quick||0)+1;saveP();
+}
+async function correct(watched,early){
+  const my=run,step=L.steps[stepI],seq=moveSeq;
+  if(early)hush();
   phase='busy';updateButtons();marks('glow');clearArrow();marks('hint');
   marks('good',[S(step.m.slice(0,2)),S(step.m.slice(2,4))]);
   const mv=hist[hist.length-1].m;drawMovePath(mv,'move');showPaths(step.show,'idea',700);sfx('good');
   if(!watched&&tries===0){stars++;$('stars').classList.remove('pop');void $('stars').offsetWidth;$('stars').classList.add('pop');}
   sans.push(step.san);renderMoves();renderStars();
   if(!ideas.includes(step.idea)){ideas.push(step.idea);renderIdeas();}
-  await say(watched?'watch':'good',watched?'Watch this':PRAISE[(stepI+VER)%PRAISE.length],vx(step.yes,'y',stepI));
+  if(early){
+    // Skip the explanation of this move and go straight on. Grandpa only sometimes comments, so it stays special.
+    quickSticker();
+    if(quick===1||Math.random()<.5)await say('quick','Thinking ahead!',QUICK_LINES[(quick-1+VER*3)%QUICK_LINES.length]);
+    else{talking(false);await wait(700);}
+  }else await say(watched?'watch':'good',watched?'Watch this':PRAISE[(stepI+VER)%PRAISE.length],vx(step.yes,'y',stepI));
   if(my!==run)return;
   marks('good');
   if(step.r){
     await wait(300);if(my!==run)return;
     const rm=findMove(step.r);clearArrow();if(rm){doMove(rm);drawMovePath(rm,'black');showPaths(step.rshow,'black',600);}sans.push(step.rsan);renderMoves();
     await wait(500);if(my!==run)return;
-    await say('reply',`${OPP} moves`,vx(step.replyText,'t',stepI));if(my!==run)return;
-  }
-  stepI++;
+    stepI++;armStep();
+    await say('reply',`${OPP} moves`,vx(step.replyText,'t',stepI-1));if(my!==run||seq!==moveSeq)return;
+  }else{stepI++;armStep();}
   if(stepI===openN&&openN<L.steps.length){
     renderInfo();sfx('win');
     await say('bridge','Opening complete!',`${BRIDGES[VER](L.name)} ${L.steps.length-openN} more moves with a plan, just like a master would.`);
-    if(my!==run)return;
+    if(my!==run||seq!==moveSeq)return;
   }
   beginStep();
 }
@@ -1519,19 +1545,25 @@ async function wrong(m,key,step,before){
   if(tries>=2){next+=' '+clue(step,tries>=3?2:1);showClue(step,tries>=3?2:1);}
   say('missed',kind==='bad'?'What you missed':'Try again',next);
 }
-function beginStep(){
-  const step=L.steps[stepI];
-  if(!step){finish();return;}
+// Get the board ready for the next move without speaking, so a child who already knows can move.
+function armStep(){
+  const step=L.steps[stepI];if(!step)return;
   tries=0;hintLevel=0;phase='await';marks('hint');
   marks('glow',step.glow.map(S));
   renderInfo();updateButtons();
+}
+function beginStep(){
+  const step=L.steps[stepI];
+  if(!step){finish();return;}
+  armStep();
   say('mission',step.plan?`Plan move ${stepI-openN+1} of ${L.steps.length-openN}`:`Mission ${stepI+1} of ${openN}`,vx(step.goal,'g',stepI));
 }
 function finish(){
   phase='done';marks('glow');renderInfo();updateButtons();sfx('win');
   const reps=addRep(lessonId,stars),n=L.steps.length;
   const starLine=stars===n?` You earned all ${n} stars without a single mistake. I'm so proud of you!`:` You earned ${stars} out of ${n} stars. Play again to collect them all!`;
-  say('win','Lesson complete!',vx(L.outro,'outro')+starLine+` That was practice number ${reps} for this opening.`+nextLevelNote(reps));
+  const quickLine=quick?` And you got ${quick} think-ahead ${quick===1?'sticker':'stickers'} for moving before I finished talking!`:'';
+  say('win','Lesson complete!',vx(L.outro,'outro')+starLine+quickLine+` That was practice number ${reps} for this opening.`+nextLevelNote(reps));
   const box=document.createElement('div');box.className='summary';
   box.innerHTML=`<h4>Practice #${reps} · ${levelOf(reps)}</h4><div class="bar" style="margin:4px 0 10px"><i style="--w:${Math.min(100,reps/GOAL*100)}%"></i></div><h4>What you learned</h4><ul>`+L.summary.map(s=>'<li>'+s+'</li>').join('')+'</ul><div class="row"></div>';
   const row=box.querySelector('.row');
@@ -1546,7 +1578,7 @@ function startLesson(id){
   run++;const my=run;lessonId=id;L=LESSONS[id];VER=repsOf(id)%5;
   me=L.color||'w';OPP=me==='w'?'Black':'White';flip=me==='b';openN=L.steps.filter(s=>!s.plan).length;
   showStage('lesson');
-  buildGrid();st=startState();hist=[];stepI=0;stars=0;tries=0;ideas=[];sans=[];phase='busy';select(-1);
+  buildGrid();st=startState();hist=[];stepI=0;stars=0;quick=0;tries=0;ideas=[];sans=[];phase='busy';select(-1);
   clearAllMarks();clearArrow();renderPieces();
   scriptEl.innerHTML='';lastEntry=null;renderInfo();renderStars();renderMoves();renderIdeas();updateButtons();
   say('intro',"Let's play!",vx(L.intro,'intro')).then(async()=>{
@@ -1554,7 +1586,8 @@ function startLesson(id){
     if(L.first){
       const fm=findMove(L.first);doMove(fm);drawMovePath(fm,'black');sans.push(L.firstSan);renderMoves();
       await wait(500);if(my!==run)return;
-      await say('reply',`${OPP} moves`,vx(L.firstText,'first'));if(my!==run)return;
+      const seq=moveSeq;armStep();
+      await say('reply',`${OPP} moves`,vx(L.firstText,'first'));if(my!==run||seq!==moveSeq)return;
     }
     beginStep();
   });
@@ -1646,10 +1679,12 @@ function renderInfo(){
   });
 }
 function renderStars(){
+  if(mode!=='lesson')$('quick').hidden=true;
   if(mode==='puzzle'){const n=pzQueue.length,k=pzSession?pzSession.first:0;$('stars').innerHTML=`<span class="st" aria-hidden="true">★</span>${k}<span style="color:var(--muted);font-size:15px">&nbsp;/ ${n}</span>`;$('stars').setAttribute('aria-label',`${k} of ${n} solved first try`);return;}
   const n=L?L.steps.length:0;
   $('stars').innerHTML=`<span class="st" aria-hidden="true">★</span>${stars}<span style="color:var(--muted);font-size:15px">&nbsp;/ ${n}</span>`;
   $('stars').setAttribute('aria-label',`${stars} of ${n} stars`);
+  const q=$('quick');q.hidden=!quick;q.innerHTML=`<span class="st"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 13.5h6.5L9 22l10-12.5h-6.6z"/></svg></span>${quick}`;q.setAttribute('aria-label',`${quick} think-ahead ${quick===1?'sticker':'stickers'}`);q.title='Think-ahead stickers: you moved before Grandpa finished talking';
 }
 function renderMoves(){
   const el=$('moves');el.innerHTML='';
@@ -10527,6 +10562,7 @@ function renderProgress(){
     <div class="tile"><strong>${streak()}</strong><span>day streak</span></div>
     <div class="tile"><strong>${mastered} / ${ORDER.length}</strong><span>openings mastered</span></div>
     <div class="tile"><strong>${solved}</strong><span>puzzles solved</span></div>
+    <div class="tile"><strong>${P.quick||0}</strong><span>think-ahead stickers</span></div>
     <div class="tile"><strong>${g.won}–${g.drawn}–${g.lost}</strong><span>games won, drawn, lost</span></div>
   </div>
   <div class="nextup"><span>Practise next</span><strong>${LESSONS[next].name}</strong><button class="chip-btn" type="button" id="goNext">Start</button></div>
@@ -10592,6 +10628,7 @@ function mergeP(a,b){
   for(const k of['played','won','lost','drawn'])m.games[k]=Math.max((a.games||{})[k]||0,(b.games||{})[k]||0);
   m.days=[...new Set([...(a.days||[]),...(b.days||[])])].sort().slice(-400);
   m.pzLevel=b.pzLevel||a.pzLevel;
+  m.quick=Math.max(a.quick||0,b.quick||0);
   return m;
 }
 async function afterLogin(){
@@ -10665,7 +10702,7 @@ renderAccount();
 
 const mq=matchMedia('(max-width:900px)'),minis=document.querySelector('.minibtns');
 function placeButtons(){
-  if(mq.matches){document.querySelector('.controls').appendChild($('hintBtn'));$('stars').after($('restartBtn'));}
+  if(mq.matches){document.querySelector('.controls').appendChild($('hintBtn'));$('quick').after($('restartBtn'));}
   else{minis.append($('hintBtn'),$('restartBtn'));}
 }
 mq.addEventListener?mq.addEventListener('change',placeButtons):mq.addListener(placeButtons);placeButtons();

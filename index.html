@@ -98,6 +98,7 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 .qsticker b{font-family:var(--f-display);font-size:clamp(17px,4.4cqw,26px);background:#fff;color:#3B2A8C;border-radius:999px;padding:2px 14px;box-shadow:0 6px 18px rgba(40,30,110,.25)}
 @keyframes qstick{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}28%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(.7)}}
 @media (prefers-reduced-motion: reduce){.qsticker{animation:qfade 1.9s linear forwards}@keyframes qfade{0%,80%{opacity:1}100%{opacity:0}}}
+.sitefoot{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;padding:28px 16px 12px;font-size:14px}.sitefoot a{color:var(--muted)}
 @keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
 .progress{display:flex;gap:4px;align-items:center}
 .progress .seg{flex:1;height:10px;border-radius:5px;background:var(--surface-2)}
@@ -413,6 +414,7 @@ body.lesson #acctBtn{display:none}
   <div class="tabpane" id="tab-puzzles" hidden></div>
   <div class="tabpane" id="tab-play" hidden></div>
   <div class="tabpane" id="tab-progress" hidden></div>
+  <footer class="sitefoot"><a href="about.html">About</a><a href="privacy.html">Privacy notice</a><a href="terms.html">Terms of use</a></footer>
 </section>
 
 <main class="stage" id="stage" hidden>

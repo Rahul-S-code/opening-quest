@@ -280,11 +280,22 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:
 .lvlh span{font-family:var(--f-body);font-size:13px;font-weight:700;color:var(--muted)}
 .lvlh:first-child{margin-top:0}
 /* Home tabs, puzzles, play and progress */
-.tabs{display:flex;gap:6px;background:var(--surface);border-radius:999px;padding:5px;box-shadow:var(--shadow);overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tabs button{flex:1;min-width:max-content;border:0;background:none;border-radius:999px;padding:9px 16px;font-family:var(--f-display);font-weight:800;font-size:17px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;gap:7px}
-.tabs button svg{width:19px;height:19px}
-.tabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+/* Bottom navigation bar for the home sections */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;gap:4px;background:var(--surface);border-top:2px solid var(--line);box-shadow:0 -6px 18px rgba(16,18,42,.08);padding:6px max(10px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-right,0px))}
+.tabs button{flex:1;max-width:170px;min-width:0;border:0;background:none;border-radius:16px;padding:6px 4px;font-family:var(--f-display);font-weight:800;font-size:14px;line-height:1.1;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.tabs button svg{width:24px;height:24px}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.home{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+/* Opening search on the Lessons page */
+.osearch{position:relative;max-width:420px;width:100%}
+.osearch svg{position:absolute;left:14px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.osearch input{width:100%;box-sizing:border-box;font:inherit;font-weight:700;font-size:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:9px 40px 9px 42px;box-shadow:var(--shadow)}
+.osearch input::placeholder{color:var(--muted);font-weight:600}
+.osearch input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.osearch input::-webkit-search-cancel-button{display:none}
+.osearch .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:var(--surface-2);color:var(--muted);width:28px;height:28px;border-radius:50%;font-weight:800;font-size:16px;line-height:1;display:grid;place-items:center}
+.nomatch{margin:0;padding:16px 18px;border-radius:16px;background:var(--surface-2);color:var(--muted);font-weight:700}
 .tabpane{display:flex;flex-direction:column;gap:22px}
 .hubrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .bigtile{display:flex;flex-direction:column;gap:4px;text-align:left;border:2px solid transparent;background:var(--surface);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
@@ -339,9 +350,7 @@ button.bigtile:hover:not(:disabled){transform:translateY(-2px);border-color:var(
 @media (max-width:640px){
   .playcard{grid-template-columns:1fr}.gp.big{width:84px;height:84px}
   .reprow{grid-template-columns:1fr}
-  .tabs{display:grid;grid-template-columns:1fr 1fr;border-radius:20px}
-  .tabs button{font-size:15px;padding:8px 10px;border-radius:14px}
-  .tabs button svg{display:none}
+  .tabs button{font-size:13px}
   .field>span,.field>label{min-width:0;width:100%}
 }
 
@@ -401,8 +410,10 @@ body.lesson #acctBtn{display:none}
 
 <section class="home" id="home">
   <div class="guestbar" id="guestBar" hidden><span>You are playing as a guest, so progress won't be saved.</span><button class="chip-btn" id="guestLogin" type="button">Log in to save</button></div>
-  <nav class="tabs" id="tabs" aria-label="Sections"><button type="button" data-tab="lessons" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7"/></svg>Lessons</button><button type="button" data-tab="puzzles" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4v3a2 2 0 1 0 4 0V3h3v7h-3a2 2 0 1 0 0 4h3v7h-7v-3a2 2 0 1 0-4 0v3H3V3z"/></svg>Puzzles</button><button type="button" data-tab="play" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg>Play a game</button><button type="button" data-tab="progress" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My progress</button></nav>
+  <nav class="tabs" id="tabs" aria-label="Sections"><button type="button" data-tab="lessons" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7"/></svg>Lessons</button><button type="button" data-tab="puzzles" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4v3a2 2 0 1 0 4 0V3h3v7h-3a2 2 0 1 0 0 4h3v7h-7v-3a2 2 0 1 0-4 0v3H3V3z"/></svg>Puzzles</button><button type="button" data-tab="play" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg>Play</button><button type="button" data-tab="progress" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</button></nav>
   <div class="tabpane" id="tab-lessons">
+  <div class="osearch" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="oqSearch" type="search" aria-label="Search openings" placeholder="Find an opening…" autocomplete="off" spellcheck="false"><button class="clr" id="oqSearchClr" type="button" aria-label="Clear search" hidden>&times;</button></div>
+  <p class="nomatch" id="noMatch" hidden></p>
   <div class="hero">
     <div class="gp" id="heroGp" aria-hidden="true"></div>
     <div><h2>Pick an opening, and I'll teach you why every move matters</h2>
@@ -1755,6 +1766,19 @@ function miniBoard(l){
   }
   return `<span class="mini" aria-hidden="true">${h}</span>`;
 }
+function filterCards(){
+  const raw=$('oqSearch').value.trim(),q=raw.toLowerCase().replace(/[’']/g,'').split(/\s+/).filter(Boolean);
+  $('oqSearchClr').hidden=!raw;
+  document.querySelector('#tab-lessons .hero').hidden=!!q.length;
+  let n=0;
+  ['cardsW','cardsB'].forEach(id=>{
+    const box=$(id);let shown=0;
+    box.querySelectorAll('.card').forEach(c=>{const t=c.dataset.find.replace(/[’']/g,''),ok=q.every(w=>t.includes(w));c.hidden=!ok;if(ok)shown++;});
+    box.querySelectorAll('.lvlh').forEach(h=>{let e=h.nextElementSibling,any=false;while(e&&!e.classList.contains('lvlh')){if(!e.hidden)any=true;e=e.nextElementSibling;}h.hidden=!any;});
+    box.parentElement.hidden=!shown;n+=shown;
+  });
+  const nm=$('noMatch');nm.hidden=n>0;if(!n)nm.textContent='No opening called "'+raw+'" yet. Try another name, like Italian or Sicilian.';
+}
 function renderCards(){
   $('cardsW').innerHTML='';$('cardsB').innerHTML='';
   const LV={1:'Starter',2:'Explorer',3:'Adventurer'};
@@ -1764,9 +1788,10 @@ function renderCards(){
     const r=P.lessons[id]||{reps:0,best:0};
     b.className='card';b.type='button';
     b.innerHTML=`${miniBoard(l)}<span><strong>${l.name}</strong><span class="tg">${l.tag}</span><span class="meta"><span class="tag ${l.color}">${l.color==='w'?'White':'Black'}</span><span class="tag">${open} missions + ${l.steps.length-open} plan moves</span>${r.reps?`<span class="tag done">★ ${r.best}/${l.steps.length}</span>`:''}<span class="tag lvl">${r.reps?`Practised ${r.reps}× · ${levelOf(r.reps)}`:'Not started'}</span></span><span class="bar" aria-hidden="true"><i style="--w:${Math.min(100,r.reps/GOAL*100)}%"></i></span></span>`;
-    b.onclick=()=>startLesson(id);
+    b.onclick=()=>startLesson(id);b.dataset.find=(l.name+' '+l.tag+' '+(l.color==='w'?'white':'black')).toLowerCase();
     const box=$(l.color==='b'?'cardsB':'cardsW'),hs=[...box.querySelectorAll('.lvlh')],nx=hs.find(x=>+x.dataset.lv>(l.lvl||1));box.insertBefore(b,nx||null);
   });
+  filterCards();
 }
 
 /* ---------------- Confetti ---------------- */
@@ -10591,7 +10616,10 @@ function showTab(t){
   if(t==='lessons')renderCards();if(t==='puzzles')renderPuzzleHub();if(t==='play')renderPlay();if(t==='progress')renderProgress();
   try{localStorage.setItem('oq-tab',t);}catch(e){}
 }
-document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{showTab(b.dataset.tab);window.scrollTo(0,0);});
+$('oqSearch').oninput=filterCards;
+$('oqSearch').onkeydown=e=>{if(e.key==='Escape'){e.target.value='';filterCards();}else if(e.key==='Enter'){const c=[...document.querySelectorAll('#tab-lessons .card')].filter(x=>!x.hidden);if(c.length===1)c[0].click();}};
+$('oqSearchClr').onclick=()=>{$('oqSearch').value='';filterCards();$('oqSearch').focus();};
 function renderPuzzleHub(){
   const due=dueReview(),solved=Object.values(P.puzzles).filter(r=>r.solved).length;
   const el=$('tab-puzzles');el.innerHTML='';
